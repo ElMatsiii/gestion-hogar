@@ -5,13 +5,11 @@ import {
   TrendingUp,
   CreditCard,
   Trash2,
-  PieChart,
-  UserCheck,
   ShieldCheck,
   Tag,
   DollarSign,
   AlertCircle,
-  CheckCircle2,
+  UserPlus,
 } from 'lucide-react';
 import {
   FinancialSummaryDTO,
@@ -22,6 +20,8 @@ import {
   ExpenseType,
 } from '../../types';
 import { api } from '../../services/api';
+import { useNotification } from '../../context/NotificationContext';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 interface FinanceDashboardProps {
   summary: FinancialSummaryDTO | null;
@@ -38,6 +38,8 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
   subscriptions,
   onRefresh,
 }) => {
+  const { showSuccess, showError, showWarning } = useNotification();
+
   // Filter state
   const [expenseFilter, setExpenseFilter] = useState<'ALL' | 'SHARED' | 'PERSONAL'>('ALL');
   const [selectedMemberFilter, setSelectedMemberFilter] = useState<string>('ALL');
@@ -46,6 +48,19 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showSubModal, setShowSubModal] = useState(false);
+
+  // In-App Confirm Dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   // Form states
   const [memberForm, setMemberForm] = useState({ name: '', role: 'Miembro', monthlyIncome: 0, avatarColor: '#3B82F6' });
@@ -63,8 +78,8 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
     amount: 0,
     category: 'ALIMENTACION',
     type: 'SHARED',
-    paidById: members[0]?.id || '',
-    assignedToMemberId: members[0]?.id || '',
+    paidById: '',
+    assignedToMemberId: '',
     date: new Date().toISOString().split('T')[0],
     notes: '',
   });
@@ -81,7 +96,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
     amount: 0,
     billingDay: 1,
     type: 'SHARED',
-    assignedToMemberId: members[0]?.id || '',
+    assignedToMemberId: '',
     category: 'Streaming',
   });
 
@@ -94,14 +109,18 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
   // Handlers
   const handleCreateMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!memberForm.name.trim()) return;
+    if (!memberForm.name.trim()) {
+      showWarning('Por favor ingresa un nombre para el integrante');
+      return;
+    }
     try {
       await api.createMember(memberForm);
       setShowMemberModal(false);
       setMemberForm({ name: '', role: 'Miembro', monthlyIncome: 0, avatarColor: '#3B82F6' });
+      showSuccess('Integrante agregado correctamente al hogar');
       onRefresh();
     } catch (err: any) {
-      alert(err.message);
+      showError(err.message);
     }
   };
 
@@ -109,16 +128,44 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
     try {
       await api.updateMemberIncome(id, tempIncome);
       setEditingIncomeMemberId(null);
+      showSuccess('Ingreso mensual actualizado');
       onRefresh();
     } catch (err: any) {
-      alert(err.message);
+      showError(err.message);
     }
+  };
+
+  const openExpenseModal = () => {
+    if (members.length === 0) {
+      showWarning('Primero debes registrar al menos un integrante del hogar');
+      setShowMemberModal(true);
+      return;
+    }
+    setExpenseForm((prev) => ({
+      ...prev,
+      paidById: prev.paidById || members[0]?.id || '',
+      assignedToMemberId: prev.assignedToMemberId || members[0]?.id || '',
+    }));
+    setShowExpenseModal(true);
+  };
+
+  const openSubModal = () => {
+    if (members.length === 0) {
+      showWarning('Primero debes registrar al menos un integrante del hogar');
+      setShowMemberModal(true);
+      return;
+    }
+    setSubForm((prev) => ({
+      ...prev,
+      assignedToMemberId: prev.assignedToMemberId || members[0]?.id || '',
+    }));
+    setShowSubModal(true);
   };
 
   const handleCreateExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!expenseForm.title.trim() || expenseForm.amount <= 0) {
-      alert('Por favor ingresa un título válido y un monto mayor a 0');
+      showWarning('Por favor ingresa un concepto válido y un monto mayor a 0');
       return;
     }
     try {
@@ -128,7 +175,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
         category: expenseForm.category,
         type: expenseForm.type,
         paidById: expenseForm.paidById || members[0]?.id,
-        assignedToMemberId: expenseForm.type === 'PERSONAL' ? expenseForm.assignedToMemberId : undefined,
+        assignedToMemberId: expenseForm.type === 'PERSONAL' ? (expenseForm.assignedToMemberId || members[0]?.id) : undefined,
         date: expenseForm.date,
         notes: expenseForm.notes,
       });
@@ -143,32 +190,44 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
         date: new Date().toISOString().split('T')[0],
         notes: '',
       });
+      showSuccess('Gasto registrado exitosamente');
       onRefresh();
     } catch (err: any) {
-      alert(err.message);
+      showError(err.message);
     }
   };
 
-  const handleDeleteExpense = async (id: string) => {
-    if (!confirm('¿Eliminar este gasto?')) return;
-    try {
-      await api.deleteExpense(id);
-      onRefresh();
-    } catch (err: any) {
-      alert(err.message);
-    }
+  const promptDeleteExpense = (id: string, title: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Eliminar gasto?',
+      message: `¿Estás seguro de eliminar el registro "${title}"? Esta acción actualizará los saldos del hogar.`,
+      onConfirm: async () => {
+        try {
+          await api.deleteExpense(id);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          showSuccess('Gasto eliminado correctamente');
+          onRefresh();
+        } catch (err: any) {
+          showError(err.message);
+        }
+      },
+    });
   };
 
   const handleCreateSubscription = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!subForm.title.trim() || subForm.amount <= 0) return;
+    if (!subForm.title.trim() || subForm.amount <= 0) {
+      showWarning('Ingresa el nombre del servicio y un costo mayor a 0');
+      return;
+    }
     try {
       await api.createSubscription({
         title: subForm.title,
         amount: Number(subForm.amount),
         billingDay: Number(subForm.billingDay),
         type: subForm.type,
-        assignedToMemberId: subForm.type === 'PERSONAL' ? subForm.assignedToMemberId : undefined,
+        assignedToMemberId: subForm.type === 'PERSONAL' ? (subForm.assignedToMemberId || members[0]?.id) : undefined,
         category: subForm.category,
         isActive: true,
       });
@@ -181,29 +240,39 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
         assignedToMemberId: members[0]?.id || '',
         category: 'Streaming',
       });
+      showSuccess('Suscripción agregada al calendario');
       onRefresh();
     } catch (err: any) {
-      alert(err.message);
+      showError(err.message);
     }
   };
 
   const handleToggleSub = async (id: string) => {
     try {
       await api.toggleSubscription(id);
+      showSuccess('Estado de suscripción actualizado');
       onRefresh();
     } catch (err: any) {
-      alert(err.message);
+      showError(err.message);
     }
   };
 
-  const handleDeleteSub = async (id: string) => {
-    if (!confirm('¿Eliminar esta suscripción?')) return;
-    try {
-      await api.deleteSubscription(id);
-      onRefresh();
-    } catch (err: any) {
-      alert(err.message);
-    }
+  const promptDeleteSub = (id: string, title: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Eliminar suscripción?',
+      message: `¿Estás seguro de eliminar "${title}" de los pagos recurrentes?`,
+      onConfirm: async () => {
+        try {
+          await api.deleteSubscription(id);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          showSuccess('Suscripción eliminada');
+          onRefresh();
+        } catch (err: any) {
+          showError(err.message);
+        }
+      },
+    });
   };
 
   // Filtered expenses
@@ -324,102 +393,120 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {summary?.memberBreakdown.map((m) => (
-            <div
-              key={m.memberId}
-              className="border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all bg-slate-50/50 relative overflow-hidden"
+        {members.length === 0 ? (
+          <div className="text-center py-12 px-4 border-2 border-dashed border-slate-200 rounded-2xl">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+              <UserPlus className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-800 text-base mb-1">Aún no hay integrantes registrados</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
+              Comienza agregando a las personas de tu hogar para registrar sus sueldos y aportes económicos.
+            </p>
+            <button
+              onClick={() => setShowMemberModal(true)}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors"
             >
+              Agregar Primer Integrante
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {summary?.memberBreakdown.map((m) => (
               <div
-                className="absolute top-0 left-0 right-0 h-1"
-                style={{ backgroundColor: m.avatarColor }}
-              />
+                key={m.memberId}
+                className="border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all bg-slate-50/50 relative overflow-hidden"
+              >
+                <div
+                  className="absolute top-0 left-0 right-0 h-1"
+                  style={{ backgroundColor: m.avatarColor }}
+                />
 
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-xs"
-                    style={{ backgroundColor: m.avatarColor }}
-                  >
-                    {m.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-base">{m.name}</h3>
-                    <span className="text-xs text-slate-500 font-medium">{m.role}</span>
-                  </div>
-                </div>
-                <span className="text-xs font-bold px-2 py-1 bg-white border border-slate-200 rounded-lg text-slate-700">
-                  {m.percentageOfFamilyIncome}% del Pozo
-                </span>
-              </div>
-
-              {/* Income Section */}
-              <div className="bg-white p-3 rounded-lg border border-slate-100 mb-3">
-                <div className="flex justify-between items-center text-xs text-slate-500 mb-1">
-                  <span>Sueldo / Ingreso Mensual:</span>
-                  {editingIncomeMemberId !== m.memberId && (
-                    <button
-                      onClick={() => {
-                        setEditingIncomeMemberId(m.memberId);
-                        setTempIncome(m.monthlyIncome);
-                      }}
-                      className="text-emerald-600 hover:underline font-semibold"
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-xs"
+                      style={{ backgroundColor: m.avatarColor }}
                     >
-                      Editar
-                    </button>
+                      {m.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-base">{m.name}</h3>
+                      <span className="text-xs text-slate-500 font-medium">{m.role}</span>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold px-2 py-1 bg-white border border-slate-200 rounded-lg text-slate-700">
+                    {m.percentageOfFamilyIncome}% del Pozo
+                  </span>
+                </div>
+
+                {/* Income Section */}
+                <div className="bg-white p-3 rounded-lg border border-slate-100 mb-3">
+                  <div className="flex justify-between items-center text-xs text-slate-500 mb-1">
+                    <span>Sueldo / Ingreso Mensual:</span>
+                    {editingIncomeMemberId !== m.memberId && (
+                      <button
+                        onClick={() => {
+                          setEditingIncomeMemberId(m.memberId);
+                          setTempIncome(m.monthlyIncome);
+                        }}
+                        className="text-emerald-600 hover:underline font-semibold"
+                      >
+                        Editar
+                      </button>
+                    )}
+                  </div>
+
+                  {editingIncomeMemberId === m.memberId ? (
+                    <div className="flex gap-2 items-center mt-1">
+                      <input
+                        type="number"
+                        value={tempIncome}
+                        onChange={(e) => setTempIncome(Number(e.target.value))}
+                        className="border border-slate-300 rounded px-2 py-1 text-sm w-full font-bold"
+                      />
+                      <button
+                        onClick={() => handleUpdateIncome(m.memberId)}
+                        className="bg-emerald-600 text-white px-2 py-1 rounded text-xs font-semibold"
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        onClick={() => setEditingIncomeMemberId(null)}
+                        className="bg-slate-200 text-slate-700 px-2 py-1 rounded text-xs"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-lg font-black text-slate-800">
+                      {formatCurrency(m.monthlyIncome)}
+                    </div>
                   )}
                 </div>
 
-                {editingIncomeMemberId === m.memberId ? (
-                  <div className="flex gap-2 items-center mt-1">
-                    <input
-                      type="number"
-                      value={tempIncome}
-                      onChange={(e) => setTempIncome(Number(e.target.value))}
-                      className="border border-slate-300 rounded px-2 py-1 text-sm w-full font-bold"
-                    />
-                    <button
-                      onClick={() => handleUpdateIncome(m.memberId)}
-                      className="bg-emerald-600 text-white px-2 py-1 rounded text-xs font-semibold"
-                    >
-                      Guardar
-                    </button>
-                    <button
-                      onClick={() => setEditingIncomeMemberId(null)}
-                      className="bg-slate-200 text-slate-700 px-2 py-1 rounded text-xs"
-                    >
-                      Cancelar
-                    </button>
+                {/* Personal Obligations breakdown */}
+                <div className="space-y-1.5 text-xs text-slate-600">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Gastos Personales (este mes):</span>
+                    <span className="font-semibold">{formatCurrency(m.personalExpensesTotal)}</span>
                   </div>
-                ) : (
-                  <div className="text-lg font-black text-slate-800">
-                    {formatCurrency(m.monthlyIncome)}
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Suscripciones Personales:</span>
+                    <span className="font-semibold">{formatCurrency(m.personalSubscriptionsTotal)}</span>
                   </div>
-                )}
-              </div>
-
-              {/* Personal Obligations breakdown */}
-              <div className="space-y-1.5 text-xs text-slate-600">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Gastos Personales (este mes):</span>
-                  <span className="font-semibold">{formatCurrency(m.personalExpensesTotal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Suscripciones Personales:</span>
-                  <span className="font-semibold">{formatCurrency(m.personalSubscriptionsTotal)}</span>
-                </div>
-                <div className="flex justify-between pt-1 border-t border-slate-200 text-slate-800 font-bold">
-                  <span>Total Obligaciones Personales:</span>
-                  <span className="text-rose-600">{formatCurrency(m.totalPersonalObligations)}</span>
-                </div>
-                <div className="flex justify-between text-slate-500 pt-0.5">
-                  <span>Desembolsado en compras:</span>
-                  <span>{formatCurrency(m.disbursedAmount)}</span>
+                  <div className="flex justify-between pt-1 border-t border-slate-200 text-slate-800 font-bold">
+                    <span>Total Obligaciones Personales:</span>
+                    <span className="text-rose-600">{formatCurrency(m.totalPersonalObligations)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500 pt-0.5">
+                    <span>Desembolsado en compras:</span>
+                    <span>{formatCurrency(m.disbursedAmount)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 3. RECURRING SUBSCRIPTIONS & OBLIGATIONS */}
@@ -435,7 +522,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
             </p>
           </div>
           <button
-            onClick={() => setShowSubModal(true)}
+            onClick={openSubModal}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg text-sm font-semibold border border-teal-200 transition-colors"
           >
             <PlusCircle className="w-4 h-4" />
@@ -443,55 +530,62 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {subscriptions.map((sub) => (
-            <div
-              key={sub.id}
-              className={`p-4 rounded-xl border transition-all ${
-                sub.isActive ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                  {sub.category}
-                </span>
-                <button
-                  onClick={() => handleToggleSub(sub.id)}
-                  className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                    sub.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'
-                  }`}
-                >
-                  {sub.isActive ? 'Activa' : 'Pausada'}
-                </button>
-              </div>
+        {subscriptions.length === 0 ? (
+          <div className="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-200 rounded-xl">
+            No tienes suscripciones registradas aún. Haz clic en "Nueva Suscripción" para agregar Netflix, Spotify, Gimnasio, etc.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            {subscriptions.map((sub) => (
+              <div
+                key={sub.id}
+                className={`p-4 rounded-xl border transition-all ${
+                  sub.isActive ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                    {sub.category}
+                  </span>
+                  <button
+                    onClick={() => handleToggleSub(sub.id)}
+                    className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                      sub.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'
+                    }`}
+                  >
+                    {sub.isActive ? 'Activa' : 'Pausada'}
+                  </button>
+                </div>
 
-              <div className="font-bold text-slate-900 text-sm">{sub.title}</div>
-              <div className="text-base font-extrabold text-slate-800 my-1">
-                {formatCurrency(sub.amount)}
-                <span className="text-xs font-normal text-slate-500"> /mes</span>
-              </div>
+                <div className="font-bold text-slate-900 text-sm">{sub.title}</div>
+                <div className="text-base font-extrabold text-slate-800 my-1">
+                  {formatCurrency(sub.amount)}
+                  <span className="text-xs font-normal text-slate-500"> /mes</span>
+                </div>
 
-              <div className="text-xs text-slate-500 flex justify-between items-center mt-2 pt-2 border-t border-slate-100">
-                <span>
-                  {sub.type === 'SHARED' ? (
-                    <span className="text-emerald-700 font-semibold">Hogar Compartido</span>
-                  ) : (
-                    <span className="text-slate-600 font-semibold">
-                      👤 {getMemberName(sub.assignedToMemberId)}
-                    </span>
-                  )}
-                </span>
-                <span className="text-slate-400">Día {sub.billingDay}</span>
-                <button
-                  onClick={() => handleDeleteSub(sub.id)}
-                  className="text-slate-400 hover:text-rose-600"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="text-xs text-slate-500 flex justify-between items-center mt-2 pt-2 border-t border-slate-100">
+                  <span>
+                    {sub.type === 'SHARED' ? (
+                      <span className="text-emerald-700 font-semibold">Hogar Compartido</span>
+                    ) : (
+                      <span className="text-slate-600 font-semibold">
+                        👤 {getMemberName(sub.assignedToMemberId)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-slate-400">Día {sub.billingDay}</span>
+                  <button
+                    onClick={() => promptDeleteSub(sub.id, sub.title)}
+                    className="text-slate-400 hover:text-rose-600 p-1"
+                    title="Eliminar suscripción"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 4. EXPENSES MANAGEMENT (SHARED VS PERSONAL) */}
@@ -507,7 +601,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
             </p>
           </div>
           <button
-            onClick={() => setShowExpenseModal(true)}
+            onClick={openExpenseModal}
             className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors"
           >
             <PlusCircle className="w-4 h-4" />
@@ -615,7 +709,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button
-                      onClick={() => handleDeleteExpense(exp.id)}
+                      onClick={() => promptDeleteExpense(exp.id, exp.title)}
                       className="text-slate-400 hover:text-rose-600 transition-colors p-1"
                       title="Eliminar gasto"
                     >
@@ -626,8 +720,8 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
               ))}
               {filteredExpenses.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-slate-400">
-                    No hay gastos registrados para este filtro.
+                  <td colSpan={7} className="text-center py-10 text-slate-400 text-xs">
+                    No hay gastos registrados para este filtro. Haz clic en "Registrar Gasto" para añadir uno.
                   </td>
                 </tr>
               )}
@@ -637,13 +731,22 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
       </div>
 
       {/* =========================================================================
-          MODALS
+          IN-APP MODALS (No Chrome Dialogs)
          ========================================================================= */}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+      />
 
       {/* Modal: Add Member */}
       {showMemberModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Agregar Integrante del Hogar</h3>
             <form onSubmit={handleCreateMember} className="space-y-4">
               <div>
@@ -699,7 +802,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
                       key={color}
                       type="button"
                       onClick={() => setMemberForm({ ...memberForm, avatarColor: color })}
-                      className={`w-8 h-8 rounded-full border-2 ${
+                      className={`w-8 h-8 rounded-full border-2 transition-transform ${
                         memberForm.avatarColor === color ? 'border-slate-800 scale-110' : 'border-transparent'
                       }`}
                       style={{ backgroundColor: color }}
@@ -712,13 +815,13 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowMemberModal(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-xs"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors"
                 >
                   Guardar Integrante
                 </button>
@@ -730,8 +833,8 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
 
       {/* Modal: Add Expense */}
       {showExpenseModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Registrar Nuevo Gasto / Pago</h3>
             <form onSubmit={handleCreateExpense} className="space-y-4">
               <div>
@@ -885,13 +988,13 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowExpenseModal(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-xs"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors"
                 >
                   Registrar Gasto
                 </button>
@@ -903,8 +1006,8 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
 
       {/* Modal: Add Subscription */}
       {showSubModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Nueva Suscripción Mensual</h3>
             <form onSubmit={handleCreateSubscription} className="space-y-4">
               <div>
@@ -1004,13 +1107,13 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowSubModal(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold shadow-xs"
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors"
                 >
                   Guardar
                 </button>

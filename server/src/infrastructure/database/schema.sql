@@ -67,10 +67,6 @@ CREATE TABLE IF NOT EXISTS shopping_items (
 );
 
 -- =========================================================================
--- DATOS SEMILLA INICIALES (Opcional para pruebas en Supabase)
+-- LISTO: La base de datos queda creada limpia y vacía para tu hogar
 -- =========================================================================
-INSERT INTO members (id, name, avatar_color, monthly_income, role) VALUES
-  ('11111111-1111-1111-1111-111111111111', 'Carlos (Papá)', '#3B82F6', 1400000, 'Padre'),
-  ('22222222-2222-2222-2222-222222222222', 'Marcela (Mamá)', '#EC4899', 1250000, 'Madre'),
-  ('33333333-3333-3333-3333-333333333333', 'Matías (Hijo)', '#10B981', 450000, 'Hijo')
-ON CONFLICT (id) DO NOTHING;
+

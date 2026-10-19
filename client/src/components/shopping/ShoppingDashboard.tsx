@@ -7,10 +7,11 @@ import {
   Trash2,
   Sparkles,
   PackageCheck,
-  RefreshCw,
 } from 'lucide-react';
 import { ShoppingItem } from '../../types';
 import { api } from '../../services/api';
+import { useNotification } from '../../context/NotificationContext';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 interface ShoppingDashboardProps {
   items: ShoppingItem[];
@@ -18,6 +19,7 @@ interface ShoppingDashboardProps {
 }
 
 export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onRefresh }) => {
+  const { showSuccess, showError, showWarning } = useNotification();
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({
     name: '',
@@ -26,9 +28,25 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
     category: 'Supermercado',
   });
 
+  // In-App Confirm Dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) return;
+    if (!form.name.trim()) {
+      showWarning('Por favor ingresa un nombre para el artículo');
+      return;
+    }
     try {
       await api.createShoppingItem({
         name: form.name,
@@ -38,37 +56,59 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
       });
       setShowModal(false);
       setForm({ name: '', quantity: 1, unit: 'unidades', category: 'Supermercado' });
+      showSuccess('Artículo agregado a la lista');
       onRefresh();
     } catch (err: any) {
-      alert(err.message);
+      showError(err.message);
     }
   };
 
-  const handleToggle = async (id: string) => {
+  const handleToggle = async (id: string, wasPurchased: boolean) => {
     try {
-      await api.toggleShoppingItem(id, true); // Automatically increments pantry inventory
+      await api.toggleShoppingItem(id, true);
+      if (!wasPurchased) {
+        showSuccess('Comprado: Se reabasteció automáticamente el inventario de tu despensa');
+      }
       onRefresh();
     } catch (err: any) {
-      alert(err.message);
+      showError(err.message);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await api.deleteShoppingItem(id);
-      onRefresh();
-    } catch (err: any) {
-      alert(err.message);
-    }
+  const promptDeleteItem = (id: string, name: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Eliminar de la lista?',
+      message: `¿Estás seguro de quitar "${name}" de la lista de compras?`,
+      onConfirm: async () => {
+        try {
+          await api.deleteShoppingItem(id);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          showSuccess('Artículo quitado de la lista');
+          onRefresh();
+        } catch (err: any) {
+          showError(err.message);
+        }
+      },
+    });
   };
 
-  const handleClearPurchased = async () => {
-    try {
-      await api.clearPurchasedShopping();
-      onRefresh();
-    } catch (err: any) {
-      alert(err.message);
-    }
+  const promptClearPurchased = () => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Limpiar artículos comprados?',
+      message: 'Se borrarán de la lista todos los productos que ya fueron marcados como comprados.',
+      onConfirm: async () => {
+        try {
+          const res = await api.clearPurchasedShopping();
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          showSuccess(res.message || 'Lista limpiada correctamente');
+          onRefresh();
+        } catch (err: any) {
+          showError(err.message);
+        }
+      },
+    });
   };
 
   const pendingItems = items.filter((i) => !i.isPurchased);
@@ -76,6 +116,15 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
 
   return (
     <div className="space-y-6 pb-12">
+      {/* In-App Confirm Dialog */}
+      <ConfirmModal
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+      />
+
       {/* Header */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -92,7 +141,7 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
           <div className="flex gap-2">
             {purchasedItems.length > 0 && (
               <button
-                onClick={handleClearPurchased}
+                onClick={promptClearPurchased}
                 className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
@@ -125,7 +174,10 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
               key={item.id}
               className="py-3 flex items-center justify-between hover:bg-slate-50/60 px-2 rounded-lg transition-colors"
             >
-              <div className="flex items-center space-x-3 cursor-pointer" onClick={() => handleToggle(item.id)}>
+              <div
+                className="flex items-center space-x-3 cursor-pointer"
+                onClick={() => handleToggle(item.id, false)}
+              >
                 <button
                   type="button"
                   className="text-slate-400 hover:text-emerald-600 transition-colors"
@@ -152,8 +204,9 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
                   {item.category || 'Varios'}
                 </span>
                 <button
-                  onClick={() => handleDelete(item.id)}
-                  className="text-slate-400 hover:text-rose-600 p-1"
+                  onClick={() => promptDeleteItem(item.id, item.name)}
+                  className="text-slate-400 hover:text-rose-600 p-1 transition-colors"
+                  title="Quitar de la lista"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -191,7 +244,7 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
               >
                 <div
                   className="flex items-center space-x-3 cursor-pointer line-through text-slate-400"
-                  onClick={() => handleToggle(item.id)}
+                  onClick={() => handleToggle(item.id, true)}
                 >
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                   <span className="text-sm font-medium">
@@ -200,7 +253,7 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
                 </div>
 
                 <button
-                  onClick={() => handleDelete(item.id)}
+                  onClick={() => promptDeleteItem(item.id, item.name)}
                   className="text-slate-300 hover:text-rose-600 p-1"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -213,8 +266,8 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
 
       {/* Modal: Add Item */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Agregar a la Lista de Compras</h3>
             <form onSubmit={handleCreateItem} className="space-y-4">
               <div>
@@ -278,13 +331,13 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-xs"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors"
                 >
                   Agregar a la Lista
                 </button>

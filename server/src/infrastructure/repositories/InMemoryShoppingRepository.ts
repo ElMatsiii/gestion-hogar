@@ -5,41 +5,7 @@ export class InMemoryShoppingRepository implements IShoppingRepository {
   private items: Map<string, ShoppingItem> = new Map();
 
   constructor() {
-    this.seed();
-  }
-
-  private seed() {
-    const seedShopping = [
-      new ShoppingItem({
-        id: 'shop-1',
-        name: 'Leche Entera 1L (Pack x6)',
-        quantity: 6,
-        unit: 'litros',
-        inventoryItemId: 'item-1',
-        category: 'Lácteos',
-        isPurchased: false,
-      }),
-      new ShoppingItem({
-        id: 'shop-2',
-        name: 'Huevos de Gallina Libre',
-        quantity: 24,
-        unit: 'unidades',
-        inventoryItemId: 'item-3',
-        category: 'Despensa y Granos',
-        isPurchased: false,
-      }),
-      new ShoppingItem({
-        id: 'shop-3',
-        name: 'Papel Higiénico 12 rollos',
-        quantity: 1,
-        unit: 'paquetes',
-        inventoryItemId: 'item-10',
-        category: 'Limpieza y Aseo',
-        isPurchased: true, // Example of already purchased item
-      }),
-    ];
-
-    seedShopping.forEach((s) => this.items.set(s.id, s));
+    // Inicializa completamente vacío (sin datos predeterminados)
   }
 
   public async findAll(): Promise<ShoppingItem[]> {

@@ -176,27 +176,33 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
           </div>
 
           <div className="space-y-4">
-            {summary?.memberBreakdown.map((m) => (
-              <div key={m.memberId}>
-                <div className="flex justify-between items-center text-xs mb-1">
-                  <span className="font-semibold text-slate-800">
-                    {m.name} ({m.role})
-                  </span>
-                  <span className="text-slate-500 font-bold">
-                    {formatCurrency(m.monthlyIncome)} ({m.percentageOfFamilyIncome}%)
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${m.percentageOfFamilyIncome}%`,
-                      backgroundColor: m.avatarColor,
-                    }}
-                  />
-                </div>
+            {(!summary?.memberBreakdown || summary.memberBreakdown.length === 0) ? (
+              <div className="py-6 text-center text-slate-400 text-xs">
+                Aún no has registrado integrantes. Haz clic en "Ver Detalle" para comenzar a configurar tu hogar.
               </div>
-            ))}
+            ) : (
+              summary.memberBreakdown.map((m) => (
+                <div key={m.memberId}>
+                  <div className="flex justify-between items-center text-xs mb-1">
+                    <span className="font-semibold text-slate-800">
+                      {m.name} ({m.role})
+                    </span>
+                    <span className="text-slate-500 font-bold">
+                      {formatCurrency(m.monthlyIncome)} ({m.percentageOfFamilyIncome}%)
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${m.percentageOfFamilyIncome}%`,
+                        backgroundColor: m.avatarColor,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

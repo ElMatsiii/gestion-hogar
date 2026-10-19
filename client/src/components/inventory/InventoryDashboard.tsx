@@ -9,9 +9,9 @@ import {
   Minus,
   Plus,
   Search,
-  Filter,
   Flame,
   ArrowRight,
+  PackageOpen,
 } from 'lucide-react';
 import {
   InventoryItem,
@@ -20,6 +20,8 @@ import {
   ExpirationStatus,
 } from '../../types';
 import { api } from '../../services/api';
+import { useNotification } from '../../context/NotificationContext';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 interface InventoryDashboardProps {
   items: InventoryItem[];
@@ -32,11 +34,26 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
   onRefresh,
   onNavigateToShopping,
 }) => {
+  const { showSuccess, showError, showWarning } = useNotification();
+
   const [search, setSearch] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<string>('ALL');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
+
+  // In-App Confirm Dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   // Form State
   const [itemForm, setItemForm] = useState<{
@@ -64,23 +81,34 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
       await api.adjustStock(id, delta);
       onRefresh();
     } catch (err: any) {
-      alert(err.message);
+      showError(err.message);
     }
   };
 
-  const handleDeleteItem = async (id: string) => {
-    if (!confirm('¿Eliminar este artículo del inventario?')) return;
-    try {
-      await api.deleteInventoryItem(id);
-      onRefresh();
-    } catch (err: any) {
-      alert(err.message);
-    }
+  const promptDeleteItem = (id: string, name: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Eliminar producto de la despensa?',
+      message: `¿Estás seguro de eliminar "${name}" del inventario?`,
+      onConfirm: async () => {
+        try {
+          await api.deleteInventoryItem(id);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          showSuccess('Producto eliminado del inventario');
+          onRefresh();
+        } catch (err: any) {
+          showError(err.message);
+        }
+      },
+    });
   };
 
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!itemForm.name.trim()) return;
+    if (!itemForm.name.trim()) {
+      showWarning('Por favor ingresa un nombre para el producto');
+      return;
+    }
     try {
       await api.createInventoryItem({
         name: itemForm.name,
@@ -103,9 +131,10 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
         location: 'Despensa',
         notes: '',
       });
+      showSuccess('Producto agregado a la despensa');
       onRefresh();
     } catch (err: any) {
-      alert(err.message);
+      showError(err.message);
     }
   };
 
@@ -156,6 +185,15 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
 
   return (
     <div className="space-y-8 pb-12">
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+      />
+
       {/* 1. METRICS CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
@@ -199,7 +237,7 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
 
       {/* 2. ROTATION ALERTS BANNER (FIFO) */}
       {expiringItems.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-xs">
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-xs animate-in fade-in">
           <div className="flex items-center gap-2 mb-3">
             <Flame className="w-5 h-5 text-amber-600" />
             <h3 className="font-bold text-amber-950 text-base">
@@ -257,152 +295,172 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
           </div>
         </div>
 
-        {/* Filters and search */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-sm">
-          {/* Search */}
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              placeholder="Buscar por nombre..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-emerald-500"
-            />
-          </div>
-
-          {/* Location filter */}
-          <div>
-            <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700"
+        {items.length === 0 ? (
+          <div className="text-center py-12 px-4 border-2 border-dashed border-slate-200 rounded-2xl">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+              <PackageOpen className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-800 text-base mb-1">Tu despensa está vacía</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
+              Agrega los productos y mercadería que tienes en casa para monitorear existencias, saber cuándo comprar y evitar que caduquen.
+            </p>
+            <button
+              onClick={() => setShowItemModal(true)}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors"
             >
-              <option value="ALL">Todas las ubicaciones</option>
-              <option value="Refrigerador">Refrigerador</option>
-              <option value="Despensa">Despensa</option>
-              <option value="Congelador">Congelador</option>
-              <option value="Lavandería">Lavandería</option>
-            </select>
+              Agregar Primer Producto
+            </button>
           </div>
-
-          {/* Category filter */}
-          <div>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700"
-            >
-              <option value="ALL">Todas las categorías</option>
-              <option value="Lácteos">Lácteos</option>
-              <option value="Carnes y Pescados">Carnes y Pescados</option>
-              <option value="Despensa y Granos">Despensa y Granos</option>
-              <option value="Frutas y Verduras">Frutas y Verduras</option>
-              <option value="Bebidas">Bebidas</option>
-              <option value="Congelados">Congelados</option>
-              <option value="Limpieza y Aseo">Limpieza y Aseo</option>
-              <option value="Otros">Otros</option>
-            </select>
-          </div>
-
-          {/* Low Stock toggle */}
-          <div className="flex items-center">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
-              <input
-                type="checkbox"
-                checked={showLowStockOnly}
-                onChange={(e) => setShowLowStockOnly(e.target.checked)}
-                className="rounded text-emerald-600 focus:ring-emerald-500"
-              />
-              <span>⚠️ Solo poco stock ({lowStockItems.length})</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Inventory Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className={`p-4 rounded-xl border transition-all ${
-                item.isLowStock
-                  ? 'bg-amber-50/40 border-amber-200'
-                  : 'bg-white border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              {/* Badges Header */}
-              <div className="flex justify-between items-start gap-2 mb-2">
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                  {item.location} · {item.category}
-                </span>
-                <div>{getExpirationBadge(item.expirationStatus, item.daysUntilExpiration)}</div>
+        ) : (
+          <>
+            {/* Filters and search */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-sm">
+              {/* Search */}
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-emerald-500"
+                />
               </div>
 
-              {/* Title & Notes */}
-              <div className="font-bold text-slate-900 text-base mb-1">{item.name}</div>
-              {item.notes && <p className="text-xs text-slate-500 mb-3">{item.notes}</p>}
-
-              {/* Stock Status Bar & Quick Actions */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mt-2 flex items-center justify-between">
-                <div>
-                  <div className="text-[11px] text-slate-500">Cantidad actual:</div>
-                  <div className="text-lg font-black text-slate-800">
-                    {item.quantity} <span className="text-xs font-normal text-slate-500">{item.unit}</span>
-                  </div>
-                  {item.isLowStock && (
-                    <div className="text-[11px] font-bold text-amber-700 flex items-center gap-1 mt-0.5">
-                      <AlertTriangle className="w-3 h-3" />
-                      Poco stock (Mínimo: {item.minThreshold})
-                    </div>
-                  )}
-                </div>
-
-                {/* Counter controls */}
-                <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg p-1">
-                  <button
-                    onClick={() => handleAdjustStock(item.id, -1)}
-                    className="p-1 rounded hover:bg-slate-100 text-slate-600 transition-colors"
-                    title="Consumir / Restar 1"
-                  >
-                    <Minus className="w-3.5 h-3.5" />
-                  </button>
-                  <span className="text-xs font-bold px-1 text-slate-700">±</span>
-                  <button
-                    onClick={() => handleAdjustStock(item.id, 1)}
-                    className="p-1 rounded hover:bg-slate-100 text-emerald-600 transition-colors"
-                    title="Reponer / Sumar 1"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Card Footer */}
-              <div className="flex justify-between items-center text-[11px] text-slate-400 mt-3 pt-2 border-t border-slate-100">
-                <span>Vence: {item.expirationDate || 'N/A'}</span>
-                <button
-                  onClick={() => handleDeleteItem(item.id)}
-                  className="text-slate-400 hover:text-rose-600 p-1 transition-colors"
-                  title="Eliminar del inventario"
+              {/* Location filter */}
+              <div>
+                <select
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                  <option value="ALL">Todas las ubicaciones</option>
+                  <option value="Refrigerador">Refrigerador</option>
+                  <option value="Despensa">Despensa</option>
+                  <option value="Congelador">Congelador</option>
+                  <option value="Lavandería">Lavandería</option>
+                </select>
+              </div>
+
+              {/* Category filter */}
+              <div>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700"
+                >
+                  <option value="ALL">Todas las categorías</option>
+                  <option value="Lácteos">Lácteos</option>
+                  <option value="Carnes y Pescados">Carnes y Pescados</option>
+                  <option value="Despensa y Granos">Despensa y Granos</option>
+                  <option value="Frutas y Verduras">Frutas y Verduras</option>
+                  <option value="Bebidas">Bebidas</option>
+                  <option value="Congelados">Congelados</option>
+                  <option value="Limpieza y Aseo">Limpieza y Aseo</option>
+                  <option value="Otros">Otros</option>
+                </select>
+              </div>
+
+              {/* Low Stock toggle */}
+              <div className="flex items-center">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={showLowStockOnly}
+                    onChange={(e) => setShowLowStockOnly(e.target.checked)}
+                    className="rounded text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span>⚠️ Solo poco stock ({lowStockItems.length})</span>
+                </label>
               </div>
             </div>
-          ))}
 
-          {filteredItems.length === 0 && (
-            <div className="col-span-full text-center py-12 text-slate-400">
-              No se encontraron productos con los filtros seleccionados.
+            {/* Inventory Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`p-4 rounded-xl border transition-all ${
+                    item.isLowStock
+                      ? 'bg-amber-50/40 border-amber-200'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  {/* Badges Header */}
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                      {item.location} · {item.category}
+                    </span>
+                    <div>{getExpirationBadge(item.expirationStatus, item.daysUntilExpiration)}</div>
+                  </div>
+
+                  {/* Title & Notes */}
+                  <div className="font-bold text-slate-900 text-base mb-1">{item.name}</div>
+                  {item.notes && <p className="text-xs text-slate-500 mb-3">{item.notes}</p>}
+
+                  {/* Stock Status Bar & Quick Actions */}
+                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mt-2 flex items-center justify-between">
+                    <div>
+                      <div className="text-[11px] text-slate-500">Cantidad actual:</div>
+                      <div className="text-lg font-black text-slate-800">
+                        {item.quantity} <span className="text-xs font-normal text-slate-500">{item.unit}</span>
+                      </div>
+                      {item.isLowStock && (
+                        <div className="text-[11px] font-bold text-amber-700 flex items-center gap-1 mt-0.5">
+                          <AlertTriangle className="w-3 h-3" />
+                          Poco stock (Mínimo: {item.minThreshold})
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Counter controls */}
+                    <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg p-1">
+                      <button
+                        onClick={() => handleAdjustStock(item.id, -1)}
+                        className="p-1 rounded hover:bg-slate-100 text-slate-600 transition-colors"
+                        title="Consumir / Restar 1"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="text-xs font-bold px-1 text-slate-700">±</span>
+                      <button
+                        onClick={() => handleAdjustStock(item.id, 1)}
+                        className="p-1 rounded hover:bg-slate-100 text-emerald-600 transition-colors"
+                        title="Reponer / Sumar 1"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Card Footer */}
+                  <div className="flex justify-between items-center text-[11px] text-slate-400 mt-3 pt-2 border-t border-slate-100">
+                    <span>Vence: {item.expirationDate || 'N/A'}</span>
+                    <button
+                      onClick={() => promptDeleteItem(item.id, item.name)}
+                      className="text-slate-400 hover:text-rose-600 p-1 transition-colors"
+                      title="Eliminar del inventario"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {filteredItems.length === 0 && (
+                <div className="col-span-full text-center py-12 text-slate-400">
+                  No se encontraron productos con los filtros seleccionados.
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
 
       {/* Modal: New Inventory Item */}
       {showItemModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Agregar Producto a la Despensa</h3>
             <form onSubmit={handleCreateItem} className="space-y-4">
               <div>
@@ -538,13 +596,13 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowItemModal(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-xs"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors"
                 >
                   Guardar en Despensa
                 </button>
