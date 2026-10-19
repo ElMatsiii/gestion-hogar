@@ -77,20 +77,61 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
     setShowKeyInput(false);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1600;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = () => reject(new Error('No se pudo procesar la imagen seleccionada'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Reset input so user can pick same file again if desired
-    e.target.value = '';
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64Data = reader.result as string;
+    try {
+      setStep('scanning');
+      const base64Data = await compressImage(file);
       setImagePreview(base64Data);
       processReceiptWithGemini(base64Data);
-    };
-    reader.readAsDataURL(file);
+    } catch (err: any) {
+      showError(err.message || 'Error al cargar la imagen');
+      setStep('upload');
+    } finally {
+      e.target.value = '';
+    }
   };
 
   const processReceiptWithGemini = async (base64Image: string) => {

@@ -154,10 +154,18 @@ export class FinancialController {
         });
       }
 
-      const { imageBase64, apiKey } = req.body;
+      const imageBase64 = req.body?.imageBase64 || req.body?.image;
+      const apiKey = req.body?.apiKey;
       const customApiKey =
         (typeof req.headers['x-gemini-key'] === 'string' ? req.headers['x-gemini-key'] : undefined) ||
         apiKey;
+
+      if (!imageBase64) {
+        return res.status(400).json({
+          success: false,
+          error: 'No se recibió la imagen de la boleta. Asegúrate de subir una foto válida.',
+        });
+      }
 
       const result = await this.scanReceiptUseCase.execute(imageBase64, customApiKey);
       res.json({ success: true, data: result });

@@ -31,12 +31,13 @@ export const getStoredApiUrl = () => {
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const base = getApiBase();
+  const { headers: customHeaders, ...restOptions } = options || {};
   const res = await fetch(`${base}${endpoint}`, {
+    ...restOptions,
     headers: {
       'Content-Type': 'application/json',
-      ...options?.headers,
+      ...(customHeaders as Record<string, string>),
     },
-    ...options,
   });
 
   if (!res.ok) {
