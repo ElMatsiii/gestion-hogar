@@ -5,7 +5,11 @@ import {
   ShoppingCart,
   LayoutDashboard,
   PiggyBank,
+  Download,
+  Loader2,
 } from 'lucide-react';
+import { usePWAInstall } from '../context/PWAInstallContext';
+import { useNotification } from '../context/NotificationContext';
 
 export type ActiveTab = 'summary' | 'finances' | 'inventory' | 'shopping';
 
@@ -24,6 +28,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   lowStockCount = 0,
   expiringCount = 0,
 }) => {
+  const { canInstall, installApp, isInstalling } = usePWAInstall();
+  const { showSuccess } = useNotification();
+
+  const handleNavbarInstall = async () => {
+    const installed = await installApp();
+    if (installed) {
+      showSuccess('¡HogarSync se instaló en tu dispositivo!');
+    }
+  };
+
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
 
@@ -117,6 +131,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               )}
             </button>
+
+            {canInstall && (
+              <button
+                type="button"
+                onClick={handleNavbarInstall}
+                disabled={isInstalling}
+                className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 text-white shadow-xs transition-colors shrink-0 ml-1"
+                title="Instalar HogarSync en tu dispositivo"
+                aria-label="Instalar HogarSync en tu dispositivo"
+              >
+                {isInstalling ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Download className="w-3.5 h-3.5" />
+                )}
+                <span className="hidden md:inline">{isInstalling ? 'Instalando...' : 'Instalar'}</span>
+              </button>
+            )}
           </nav>
         </div>
       </div>

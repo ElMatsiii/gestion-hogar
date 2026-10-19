@@ -15,6 +15,7 @@ import {
 import { api, getStoredApiUrl, setCustomApiUrl, getApiBase } from './services/api';
 import { RefreshCw, Server, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useNotification } from './context/NotificationContext';
+import { PWAInstallBanner } from './components/common/PWAInstallBanner';
 
 export function App() {
   const { showSuccess, showError, showWarning } = useNotification();
@@ -217,6 +218,9 @@ export function App() {
         <p>HogarSync · Sistema de Finanzas Compartidas y Rotación de Despensa</p>
         <p className="mt-1">Arquitectura Limpia (Clean Architecture) · Principios SOLID · Node.js & React</p>
       </footer>
+
+      {/* PWA Install Banner */}
+      <PWAInstallBanner />
     </div>
   );
 }
