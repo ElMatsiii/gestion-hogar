@@ -190,20 +190,7 @@ export function App() {
         )}
 
         {/* Top bar controls */}
-        <div className="flex justify-between items-center mb-4 text-xs gap-2">
-          <button
-            onClick={() => setShowConfig(!showConfig)}
-            className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors min-w-0"
-          >
-            <Server className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">
-              Servidor:{' '}
-              <strong className="font-mono text-[11px] text-slate-700 truncate">
-                {getStoredApiUrl() ? getStoredApiUrl().replace(/^https?:\/\//, '') : (isVercel ? 'Vercel (local)' : 'Localhost:3001')}
-              </strong>
-            </span>
-          </button>
-
+        <div className="flex justify-end items-center mb-4 text-xs gap-2">
           <button
             onClick={() => {
               setIsRefreshing(true);
@@ -213,7 +200,7 @@ export function App() {
             className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${isRefreshing ? 'animate-spin text-emerald-600' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
+            <span>{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
           </button>
         </div>
 
@@ -240,6 +227,7 @@ export function App() {
         {activeTab === 'inventory' && (
           <InventoryDashboard
             items={inventory}
+            membersCount={members.length}
             onRefresh={loadData}
             onNavigateToShopping={() => setActiveTab('shopping')}
           />
@@ -251,9 +239,18 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400 mb-16 md:mb-0 px-4">
-        <p>HogarSync · Sistema de Finanzas Compartidas y Rotación de Despensa</p>
-        <p className="mt-1">Arquitectura Limpia (Clean Architecture) · Principios SOLID · Node.js & React</p>
+      <footer className="border-t border-slate-200 bg-white py-5 text-center text-xs text-slate-400 mb-16 md:mb-0 px-4">
+        <div className="flex items-center justify-center gap-2">
+          <span>HogarSync · Gestión de Finanzas y Despensa Familiar</span>
+          <button
+            onClick={() => setShowConfig(!showConfig)}
+            className="text-slate-300 hover:text-slate-500 transition-colors p-1"
+            title="Configurar conexión"
+            aria-label="Configurar conexión"
+          >
+            <Server className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </footer>
 
       {/* PWA Install Banner */}

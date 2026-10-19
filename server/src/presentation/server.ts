@@ -26,7 +26,9 @@ import { ManageSubscriptionsUseCase } from '../application/use-cases/ManageSubsc
 import { ManageInventoryUseCase } from '../application/use-cases/ManageInventoryUseCase';
 import { ManageShoppingListUseCase } from '../application/use-cases/ManageShoppingListUseCase';
 import { ScanReceiptUseCase } from '../application/use-cases/ScanReceiptUseCase';
+import { SuggestRecipesUseCase } from '../application/use-cases/SuggestRecipesUseCase';
 import { GeminiReceiptScannerService } from '../infrastructure/services/GeminiReceiptScannerService';
+import { GeminiRecipeSuggestionService } from '../infrastructure/services/GeminiRecipeSuggestionService';
 
 // Controllers and Routers (Presentation Layer)
 import { FinancialController } from './controllers/FinancialController';
@@ -69,6 +71,9 @@ const shoppingUseCase = new ManageShoppingListUseCase(shoppingRepo, inventoryRep
 const scannerService = new GeminiReceiptScannerService();
 const scanReceiptUseCase = new ScanReceiptUseCase(scannerService);
 
+const recipeSuggestionService = new GeminiRecipeSuggestionService();
+const suggestRecipesUseCase = new SuggestRecipesUseCase(recipeSuggestionService);
+
 // 3. Controllers Instantiation
 const financialController = new FinancialController(
   summaryUseCase,
@@ -78,7 +83,11 @@ const financialController = new FinancialController(
   scanReceiptUseCase
 );
 
-const inventoryController = new InventoryController(inventoryUseCase, shoppingUseCase);
+const inventoryController = new InventoryController(
+  inventoryUseCase,
+  shoppingUseCase,
+  suggestRecipesUseCase
+);
 
 // 4. Routes Registration
 app.use('/api/finances', createFinanceRouter(financialController));

@@ -1,11 +1,13 @@
 import { Request, Response } from 'express';
 import { ManageInventoryUseCase } from '../../application/use-cases/ManageInventoryUseCase';
 import { ManageShoppingListUseCase } from '../../application/use-cases/ManageShoppingListUseCase';
+import { SuggestRecipesUseCase } from '../../application/use-cases/SuggestRecipesUseCase';
 
 export class InventoryController {
   constructor(
     private readonly inventoryUseCase: ManageInventoryUseCase,
-    private readonly shoppingUseCase: ManageShoppingListUseCase
+    private readonly shoppingUseCase: ManageShoppingListUseCase,
+    private readonly suggestRecipesUseCase?: SuggestRecipesUseCase
   ) {}
 
   public getInventory = async (req: Request, res: Response) => {
@@ -97,6 +99,37 @@ export class InventoryController {
       res.json({ success: true, message: `${count} artículos comprados eliminados` });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
+    }
+  };
+
+  public suggestRecipes = async (req: Request, res: Response) => {
+    try {
+      if (!this.suggestRecipesUseCase) {
+        return res.status(501).json({
+          success: false,
+          error: 'El servicio de sugerencias de recetas con IA no está habilitado.',
+        });
+      }
+
+      const headerKey = req.headers['x-gemini-key'];
+      const customApiKey =
+        typeof headerKey === 'string' && headerKey.trim()
+          ? headerKey.trim()
+          : typeof req.body.apiKey === 'string' && req.body.apiKey.trim()
+          ? req.body.apiKey.trim()
+          : undefined;
+
+      const recipes = await this.suggestRecipesUseCase.execute({
+        inventory: req.body.inventory || [],
+        membersCount: Number(req.body.membersCount) || 2,
+        daysCount: Number(req.body.daysCount) || 2,
+        customPreference: req.body.customPreference,
+        customApiKey,
+      });
+
+      return res.json({ success: true, data: recipes });
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message });
     }
   };
 }

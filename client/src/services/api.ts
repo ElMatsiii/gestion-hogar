@@ -219,4 +219,51 @@ export const api = {
       body: JSON.stringify({ imageBase64, apiKey }),
     });
   },
+
+  // Gemini AI Chilean Recipe Suggestions
+  suggestRecipes: (
+    payload: {
+      inventory: Array<{
+        name: string;
+        quantity: number;
+        unit: string;
+        category: string;
+        expirationStatus?: string;
+        daysUntilExpiration?: number | null;
+      }>;
+      membersCount: number;
+      daysCount: number;
+      customPreference?: string;
+    },
+    customApiKey?: string
+  ) => {
+    const savedKey = typeof window !== 'undefined' ? localStorage.getItem('hogar_gemini_key') : null;
+    const apiKey = customApiKey || savedKey || undefined;
+    const headers: Record<string, string> = {};
+    if (apiKey) {
+      headers['x-gemini-key'] = apiKey;
+    }
+    return request<
+      Array<{
+        id: string;
+        title: string;
+        time: string;
+        difficulty: 'Fácil' | 'Media';
+        portions: number;
+        daysLasting: number;
+        description: string;
+        steps: string[];
+        requiredIngredients: Array<{
+          name: string;
+          quantity: number;
+          unit: string;
+          category: string;
+        }>;
+      }>
+    >('/inventory/suggest-recipes', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ...payload, apiKey }),
+    });
+  },
 };

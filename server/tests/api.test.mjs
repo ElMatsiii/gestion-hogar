@@ -139,6 +139,14 @@ test('Receipt Scanner Validation: rejects missing image or missing API key', asy
     imageBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
   });
   assert.equal(noKeyRes.status, 400);
+
+  // Recipe suggestions without API key returns 400 with helpful error
+  const noRecipeKeyRes = await request('POST', '/api/inventory/suggest-recipes', {
+    inventory: [{ name: 'Pollo', quantity: 1, unit: 'kg', category: 'Carnes y Pescados' }],
+    membersCount: 4,
+    daysCount: 2,
+  });
+  assert.equal(noRecipeKeyRes.status, 400);
 });
 
 test('Inventory & Shopping List Flow: CRUD items, stock adjustment, and clear purchased', async () => {

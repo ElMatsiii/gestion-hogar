@@ -17,5 +17,8 @@ export function createInventoryRouter(controller: InventoryController): Router {
   router.delete('/shopping/:id', controller.deleteShoppingItem);
   router.delete('/shopping/actions/clear-purchased', controller.clearPurchased);
 
+  // Gemini AI Chilean Recipe Suggestions
+  router.post('/suggest-recipes', controller.suggestRecipes);
+
   return router;
 }

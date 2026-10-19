@@ -29,12 +29,14 @@ import { WeeklyMealPlannerModal } from './WeeklyMealPlannerModal';
 
 interface InventoryDashboardProps {
   items: InventoryItem[];
+  membersCount?: number;
   onRefresh: () => void;
   onNavigateToShopping?: () => void;
 }
 
 export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
   items,
+  membersCount = 2,
   onRefresh,
   onNavigateToShopping,
 }) => {
@@ -654,6 +656,7 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
         isOpen={showRecipeModal}
         onClose={() => setShowRecipeModal(false)}
         inventory={items}
+        membersCount={membersCount}
         onRefresh={onRefresh}
       />
 
