@@ -40,12 +40,32 @@ export class FinancialController {
     }
   };
 
+  public updateMember = async (req: Request, res: Response) => {
+    try {
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const updated = await this.membersUseCase.update(id, req.body);
+      res.json({ success: true, data: updated });
+    } catch (err: any) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  };
+
   public updateMemberIncome = async (req: Request, res: Response) => {
     try {
       const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
       const { monthlyIncome } = req.body;
       const updated = await this.membersUseCase.updateIncome(id, monthlyIncome);
       res.json({ success: true, data: updated });
+    } catch (err: any) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  };
+
+  public deleteMember = async (req: Request, res: Response) => {
+    try {
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      await this.membersUseCase.delete(id);
+      res.json({ success: true, message: 'Integrante eliminado exitosamente' });
     } catch (err: any) {
       res.status(400).json({ success: false, error: err.message });
     }

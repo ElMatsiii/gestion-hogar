@@ -73,6 +73,17 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
+  updateMember: (id: string, data: { name?: string; avatarColor?: string; monthlyIncome?: number; role?: string }) =>
+    request<Member>(`/finances/members/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  deleteMember: (id: string) =>
+    request<{ success: boolean }>(`/finances/members/${id}`, {
+      method: 'DELETE',
+    }),
+
   updateMemberIncome: (id: string, monthlyIncome: number) =>
     request<Member>(`/finances/members/${id}/income`, {
       method: 'PUT',

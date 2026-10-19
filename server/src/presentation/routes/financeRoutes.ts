@@ -10,7 +10,9 @@ export function createFinanceRouter(controller: FinancialController): Router {
   // Members
   router.get('/members', controller.getMembers);
   router.post('/members', controller.createMember);
+  router.put('/members/:id', controller.updateMember);
   router.put('/members/:id/income', controller.updateMemberIncome);
+  router.delete('/members/:id', controller.deleteMember);
 
   // Expenses
   router.get('/expenses', controller.getExpenses);

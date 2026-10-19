@@ -9,6 +9,13 @@ export interface CreateMemberDTO {
   role?: string;
 }
 
+export interface UpdateMemberDTO {
+  name?: string;
+  avatarColor?: string;
+  monthlyIncome?: number;
+  role?: string;
+}
+
 export class ManageMembersUseCase {
   constructor(private readonly memberRepo: IMemberRepository) {}
 
@@ -26,6 +33,15 @@ export class ManageMembersUseCase {
     });
 
     return this.memberRepo.create(member);
+  }
+
+  public async update(id: string, dto: UpdateMemberDTO): Promise<Member> {
+    const member = await this.memberRepo.findById(id);
+    if (!member) {
+      throw new Error(`Miembro con id ${id} no encontrado`);
+    }
+    member.updateDetails(dto);
+    return this.memberRepo.update(member);
   }
 
   public async updateIncome(id: string, newIncome: number): Promise<Member> {

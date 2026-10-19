@@ -12,6 +12,8 @@ import {
   Flame,
   ArrowRight,
   PackageOpen,
+  ChefHat,
+  Calendar,
 } from 'lucide-react';
 import {
   InventoryItem,
@@ -22,6 +24,8 @@ import {
 import { api } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { RecipeSuggestionsModal } from './RecipeSuggestionsModal';
+import { WeeklyMealPlannerModal } from './WeeklyMealPlannerModal';
 
 interface InventoryDashboardProps {
   items: InventoryItem[];
@@ -41,6 +45,8 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
+  const [showRecipeModal, setShowRecipeModal] = useState(false);
+  const [showPlannerModal, setShowPlannerModal] = useState(false);
 
   // In-App Confirm Dialog state
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -238,11 +244,20 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
       {/* 2. ROTATION ALERTS BANNER (FIFO) */}
       {expiringItems.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-xs animate-in fade-in">
-          <div className="flex items-center gap-2 mb-3">
-            <Flame className="w-5 h-5 text-amber-600" />
-            <h3 className="font-bold text-amber-950 text-base">
-              Alimentos con Rotación Prioritaria (Consumir Primero):
-            </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <Flame className="w-5 h-5 text-amber-600" />
+              <h3 className="font-bold text-amber-950 text-base">
+                Alimentos con Rotación Prioritaria (Consumir Primero):
+              </h3>
+            </div>
+            <button
+              onClick={() => setShowRecipeModal(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
+            >
+              <ChefHat className="w-3.5 h-3.5" />
+              <span>¿Qué cocinamos con esto?</span>
+            </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {expiringItems.map((item) => (
@@ -275,16 +290,35 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
               Control exacto de existencia, aviso cuando hay poco y control de rotación de alimentos.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setShowPlannerModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-sm font-bold transition-colors shadow-xs"
+              title="Planificador semanal de comidas"
+            >
+              <Calendar className="w-4 h-4 text-indigo-600" />
+              <span>Menú Semanal</span>
+            </button>
+
+            <button
+              onClick={() => setShowRecipeModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-sm font-bold shadow-xs transition-all hover:scale-[1.02]"
+              title="Sugerir recetas según ingredientes disponibles y por vencer"
+            >
+              <ChefHat className="w-4 h-4" />
+              <span>¿Qué cocinamos hoy?</span>
+            </button>
+
             {onNavigateToShopping && (
               <button
                 onClick={onNavigateToShopping}
                 className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition-colors"
               >
-                <span>Ir a Lista de Compras</span>
+                <span>Lista de Compras</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             )}
+
             <button
               onClick={() => setShowItemModal(true)}
               className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors"
@@ -611,6 +645,24 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Recipe Suggestions Modal */}
+      <RecipeSuggestionsModal
+        isOpen={showRecipeModal}
+        onClose={() => setShowRecipeModal(false)}
+        inventory={items}
+        onRefresh={onRefresh}
+      />
+
+      {/* Weekly Meal Planner Modal */}
+      <WeeklyMealPlannerModal
+        isOpen={showPlannerModal}
+        onClose={() => setShowPlannerModal(false)}
+        onOpenRecipes={() => {
+          setShowPlannerModal(false);
+          setShowRecipeModal(true);
+        }}
+      />
     </div>
   );
 };

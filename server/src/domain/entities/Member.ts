@@ -37,4 +37,22 @@ export class Member {
     }
     this.monthlyIncome = newIncome;
   }
+
+  public updateDetails(props: {
+    name?: string;
+    role?: string;
+    avatarColor?: string;
+    monthlyIncome?: number;
+  }): void {
+    if (props.name !== undefined) {
+      if (!props.name.trim()) throw new Error('El nombre no puede estar vacío');
+      this.name = props.name.trim();
+    }
+    if (props.role !== undefined) this.role = props.role;
+    if (props.avatarColor !== undefined) this.avatarColor = props.avatarColor;
+    if (props.monthlyIncome !== undefined) {
+      if (props.monthlyIncome < 0) throw new Error('El ingreso mensual no puede ser negativo');
+      this.monthlyIncome = Number(props.monthlyIncome);
+    }
+  }
 }
