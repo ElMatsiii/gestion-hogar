@@ -76,13 +76,13 @@ Debes responder ÚNICAMENTE con el objeto JSON según la estructura requerida.
           .filter((m: any) => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
           .map((m: any) => String(m.name).replace(/^models\//, ''));
 
-        // Prioritize: gemini-2.5-flash -> gemini-2.0-flash -> other flash -> other gemini
-        const flash25 = available.filter((m) => m.includes('2.5') && m.includes('flash'));
-        const flash20 = available.filter((m) => m.includes('2.0') && m.includes('flash'));
-        const otherFlash = available.filter((m) => m.includes('flash') && !m.includes('2.5') && !m.includes('2.0'));
+        // Prioritize: high-quota Lite models -> Flash 2.5 -> other Flash -> general Gemini
+        const flashLite = available.filter((m) => m.includes('lite'));
+        const flash25 = available.filter((m) => m.includes('2.5') && m.includes('flash') && !m.includes('lite'));
+        const otherFlash = available.filter((m) => m.includes('flash') && !m.includes('lite') && !m.includes('2.5'));
         const geminiGeneral = available.filter((m) => m.startsWith('gemini-') && !m.includes('flash'));
 
-        modelsToTry = [...flash25, ...flash20, ...otherFlash, ...geminiGeneral];
+        modelsToTry = [...flashLite, ...flash25, ...otherFlash, ...geminiGeneral];
       }
     } catch (err) {
       console.warn('Could not query ListModels, using fallback model list:', err);
@@ -90,14 +90,13 @@ Debes responder ÚNICAMENTE con el objeto JSON según la estructura requerida.
 
     if (modelsToTry.length === 0) {
       modelsToTry = [
+        'gemini-3.5-flash-lite',
+        'gemini-2.5-flash-lite',
         'gemini-2.5-flash',
         'gemini-2.0-flash',
         'gemini-2.0-flash-exp',
-        'gemini-1.5-flash-latest',
         'gemini-1.5-flash-8b',
         'gemini-1.5-flash',
-        'gemini-2.5-pro',
-        'gemini-2.0-pro-exp-02-05',
       ];
     }
 
@@ -118,8 +117,8 @@ Debes responder ÚNICAMENTE con el objeto JSON según la estructura requerida.
           const errorJson: any = await response.json().catch(() => ({}));
           const errMsg = errorJson.error?.message || `HTTP ${response.status}: ${response.statusText}`;
           lastError = errMsg;
-          // If 404 (model not found) or 400 (unsupported), try next model candidate
-          if (response.status === 404 || response.status === 400) {
+          // If 404 (model not found), 400 (unsupported), or 429 (quota/rate limit reached), try next model candidate!
+          if (response.status === 404 || response.status === 400 || response.status === 429) {
             continue;
           }
           throw new Error(`Error en API de Gemini (${model}): ${errMsg}`);
