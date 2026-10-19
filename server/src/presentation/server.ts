@@ -25,6 +25,8 @@ import { ManageExpensesUseCase } from '../application/use-cases/ManageExpensesUs
 import { ManageSubscriptionsUseCase } from '../application/use-cases/ManageSubscriptionsUseCase';
 import { ManageInventoryUseCase } from '../application/use-cases/ManageInventoryUseCase';
 import { ManageShoppingListUseCase } from '../application/use-cases/ManageShoppingListUseCase';
+import { ScanReceiptUseCase } from '../application/use-cases/ScanReceiptUseCase';
+import { GeminiReceiptScannerService } from '../infrastructure/services/GeminiReceiptScannerService';
 
 // Controllers and Routers (Presentation Layer)
 import { FinancialController } from './controllers/FinancialController';
@@ -39,7 +41,8 @@ const PORT = process.env.PORT || 3001;
 
 // Global Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ limit: '15mb', extended: true }));
 
 // =========================================================================
 // COMPOSITION ROOT / DEPENDENCY INVERSION (DIP - SOLID)
@@ -63,12 +66,16 @@ const subscriptionsUseCase = new ManageSubscriptionsUseCase(subscriptionRepo, me
 const inventoryUseCase = new ManageInventoryUseCase(inventoryRepo, shoppingRepo);
 const shoppingUseCase = new ManageShoppingListUseCase(shoppingRepo, inventoryRepo);
 
+const scannerService = new GeminiReceiptScannerService();
+const scanReceiptUseCase = new ScanReceiptUseCase(scannerService);
+
 // 3. Controllers Instantiation
 const financialController = new FinancialController(
   summaryUseCase,
   membersUseCase,
   expensesUseCase,
-  subscriptionsUseCase
+  subscriptionsUseCase,
+  scanReceiptUseCase
 );
 
 const inventoryController = new InventoryController(inventoryUseCase, shoppingUseCase);

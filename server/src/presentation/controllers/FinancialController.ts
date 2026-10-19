@@ -3,13 +3,15 @@ import { GetFinancialSummaryUseCase } from '../../application/use-cases/GetFinan
 import { ManageMembersUseCase } from '../../application/use-cases/ManageMembersUseCase';
 import { ManageExpensesUseCase } from '../../application/use-cases/ManageExpensesUseCase';
 import { ManageSubscriptionsUseCase } from '../../application/use-cases/ManageSubscriptionsUseCase';
+import { ScanReceiptUseCase } from '../../application/use-cases/ScanReceiptUseCase';
 
 export class FinancialController {
   constructor(
     private readonly summaryUseCase: GetFinancialSummaryUseCase,
     private readonly membersUseCase: ManageMembersUseCase,
     private readonly expensesUseCase: ManageExpensesUseCase,
-    private readonly subscriptionsUseCase: ManageSubscriptionsUseCase
+    private readonly subscriptionsUseCase: ManageSubscriptionsUseCase,
+    private readonly scanReceiptUseCase?: ScanReceiptUseCase
   ) {}
 
   public getSummary = async (req: Request, res: Response) => {
@@ -138,6 +140,27 @@ export class FinancialController {
       const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
       await this.subscriptionsUseCase.delete(id);
       res.json({ success: true, message: 'Suscripción eliminada' });
+    } catch (err: any) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  };
+
+  public scanReceipt = async (req: Request, res: Response) => {
+    try {
+      if (!this.scanReceiptUseCase) {
+        return res.status(501).json({
+          success: false,
+          error: 'El servicio de escaneo con IA no está configurado en el servidor.',
+        });
+      }
+
+      const { imageBase64, apiKey } = req.body;
+      const customApiKey =
+        (typeof req.headers['x-gemini-key'] === 'string' ? req.headers['x-gemini-key'] : undefined) ||
+        apiKey;
+
+      const result = await this.scanReceiptUseCase.execute(imageBase64, customApiKey);
+      res.json({ success: true, data: result });
     } catch (err: any) {
       res.status(400).json({ success: false, error: err.message });
     }

@@ -25,5 +25,8 @@ export function createFinanceRouter(controller: FinancialController): Router {
   router.patch('/subscriptions/:id/toggle', controller.toggleSubscription);
   router.delete('/subscriptions/:id', controller.deleteSubscription);
 
+  // Gemini Vision Receipt Scanner
+  router.post('/scan-receipt', controller.scanReceipt);
+
   return router;
 }

@@ -191,4 +191,31 @@ export const api = {
     request<{ message: string }>('/inventory/shopping/actions/clear-purchased', {
       method: 'DELETE',
     }),
+
+  // Gemini Vision OCR Receipt Scanner
+  scanReceipt: (imageBase64: string, customApiKey?: string) => {
+    const savedKey = typeof window !== 'undefined' ? localStorage.getItem('hogar_gemini_key') : null;
+    const apiKey = customApiKey || savedKey || undefined;
+    const headers: Record<string, string> = {};
+    if (apiKey) {
+      headers['x-gemini-key'] = apiKey;
+    }
+    return request<{
+      storeName: string;
+      date: string;
+      totalAmount: number;
+      items: Array<{
+        name: string;
+        quantity: number;
+        unit: string;
+        price: number;
+        category: string;
+        location: string;
+      }>;
+    }>('/finances/scan-receipt', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ imageBase64, apiKey }),
+    });
+  },
 };
