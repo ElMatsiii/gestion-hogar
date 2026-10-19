@@ -64,8 +64,43 @@ Debes responder ÚNICAMENTE con el objeto JSON según la estructura requerida.
       },
     };
 
-    // Try gemini-1.5-flash first, and fallback to gemini-2.5-flash if needed
-    const modelsToTry = ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-1.5-pro'];
+    // 1. Discover models supported by this specific API key via ListModels
+    let modelsToTry: string[] = [];
+
+    try {
+      const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+      const listRes = await fetch(listUrl);
+      if (listRes.ok) {
+        const listData: any = await listRes.json();
+        const available: string[] = (listData.models || [])
+          .filter((m: any) => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
+          .map((m: any) => String(m.name).replace(/^models\//, ''));
+
+        // Prioritize: gemini-2.5-flash -> gemini-2.0-flash -> other flash -> other gemini
+        const flash25 = available.filter((m) => m.includes('2.5') && m.includes('flash'));
+        const flash20 = available.filter((m) => m.includes('2.0') && m.includes('flash'));
+        const otherFlash = available.filter((m) => m.includes('flash') && !m.includes('2.5') && !m.includes('2.0'));
+        const geminiGeneral = available.filter((m) => m.startsWith('gemini-') && !m.includes('flash'));
+
+        modelsToTry = [...flash25, ...flash20, ...otherFlash, ...geminiGeneral];
+      }
+    } catch (err) {
+      console.warn('Could not query ListModels, using fallback model list:', err);
+    }
+
+    if (modelsToTry.length === 0) {
+      modelsToTry = [
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-exp',
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-flash-8b',
+        'gemini-1.5-flash',
+        'gemini-2.5-pro',
+        'gemini-2.0-pro-exp-02-05',
+      ];
+    }
+
     let lastError = '';
 
     for (const model of modelsToTry) {
@@ -80,11 +115,11 @@ Debes responder ÚNICAMENTE con el objeto JSON según la estructura requerida.
         });
 
         if (!response.ok) {
-          const errorJson = await response.json().catch(() => ({}));
+          const errorJson: any = await response.json().catch(() => ({}));
           const errMsg = errorJson.error?.message || `HTTP ${response.status}: ${response.statusText}`;
           lastError = errMsg;
-          // If model not found (404), try next model
-          if (response.status === 404) {
+          // If 404 (model not found) or 400 (unsupported), try next model candidate
+          if (response.status === 404 || response.status === 400) {
             continue;
           }
           throw new Error(`Error en API de Gemini (${model}): ${errMsg}`);
@@ -98,8 +133,9 @@ Debes responder ÚNICAMENTE con el objeto JSON según la estructura requerida.
         }
 
         // Clean possible markdown code fences just in case
-        const cleanedText = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
+        const jsonMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        const jsonString = jsonMatch ? jsonMatch[1] : rawText;
+        const parsed = JSON.parse(jsonString.trim());
 
         const items: ScannedItemDTO[] = Array.isArray(parsed.items)
           ? parsed.items.map((item: any) => ({
