@@ -67,6 +67,24 @@ CREATE TABLE IF NOT EXISTS shopping_items (
 );
 
 -- =========================================================================
--- LISTO: La base de datos queda creada limpia y vacía para tu hogar
+-- POLÍTICAS DE ACCESO (Permitir lectura y escritura a la aplicación)
 -- =========================================================================
+ALTER TABLE members ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Acceso total a members" ON members;
+CREATE POLICY "Acceso total a members" ON members FOR ALL USING (true) WITH CHECK (true);
 
+ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Acceso total a expenses" ON expenses;
+CREATE POLICY "Acceso total a expenses" ON expenses FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Acceso total a subscriptions" ON subscriptions;
+CREATE POLICY "Acceso total a subscriptions" ON subscriptions FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE inventory_items ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Acceso total a inventory_items" ON inventory_items;
+CREATE POLICY "Acceso total a inventory_items" ON inventory_items FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE shopping_items ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Acceso total a shopping_items" ON shopping_items;
+CREATE POLICY "Acceso total a shopping_items" ON shopping_items FOR ALL USING (true) WITH CHECK (true);

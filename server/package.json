@@ -9,6 +9,7 @@
     "start": "node dist/presentation/server.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^24.13.3",

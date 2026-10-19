@@ -2,12 +2,21 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
+// Supabase client factory
+import { getSupabaseClient } from '../infrastructure/database/supabaseClient';
+
 // Repositories (Infrastructure Layer)
 import { InMemoryMemberRepository } from '../infrastructure/repositories/InMemoryMemberRepository';
 import { InMemoryExpenseRepository } from '../infrastructure/repositories/InMemoryExpenseRepository';
 import { InMemorySubscriptionRepository } from '../infrastructure/repositories/InMemorySubscriptionRepository';
 import { InMemoryInventoryRepository } from '../infrastructure/repositories/InMemoryInventoryRepository';
 import { InMemoryShoppingRepository } from '../infrastructure/repositories/InMemoryShoppingRepository';
+
+import { SupabaseMemberRepository } from '../infrastructure/repositories/SupabaseMemberRepository';
+import { SupabaseExpenseRepository } from '../infrastructure/repositories/SupabaseExpenseRepository';
+import { SupabaseSubscriptionRepository } from '../infrastructure/repositories/SupabaseSubscriptionRepository';
+import { SupabaseInventoryRepository } from '../infrastructure/repositories/SupabaseInventoryRepository';
+import { SupabaseShoppingRepository } from '../infrastructure/repositories/SupabaseShoppingRepository';
 
 // Use Cases (Application Layer)
 import { GetFinancialSummaryUseCase } from '../application/use-cases/GetFinancialSummaryUseCase';
@@ -33,15 +42,17 @@ app.use(cors());
 app.use(express.json());
 
 // =========================================================================
-// COMPOSITION ROOT / DEPENDENCY INJECTION (DIP - SOLID)
+// COMPOSITION ROOT / DEPENDENCY INVERSION (DIP - SOLID)
 // =========================================================================
 
-// 1. Repositories Instantiation
-const memberRepo = new InMemoryMemberRepository();
-const expenseRepo = new InMemoryExpenseRepository();
-const subscriptionRepo = new InMemorySubscriptionRepository();
-const inventoryRepo = new InMemoryInventoryRepository();
-const shoppingRepo = new InMemoryShoppingRepository();
+// 1. Detect Persistence Provider (Supabase Cloud vs InMemory)
+const supabase = getSupabaseClient();
+
+const memberRepo = supabase ? new SupabaseMemberRepository(supabase) : new InMemoryMemberRepository();
+const expenseRepo = supabase ? new SupabaseExpenseRepository(supabase) : new InMemoryExpenseRepository();
+const subscriptionRepo = supabase ? new SupabaseSubscriptionRepository(supabase) : new InMemorySubscriptionRepository();
+const inventoryRepo = supabase ? new SupabaseInventoryRepository(supabase) : new InMemoryInventoryRepository();
+const shoppingRepo = supabase ? new SupabaseShoppingRepository(supabase) : new InMemoryShoppingRepository();
 
 // 2. Use Cases Instantiation
 const summaryUseCase = new GetFinancialSummaryUseCase(memberRepo, expenseRepo, subscriptionRepo);
@@ -72,6 +83,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
     status: 'online',
     timestamp: new Date().toISOString(),
     service: 'Gestión del Hogar API',
+    persistence: supabase ? 'Supabase (PostgreSQL en la Nube)' : 'Memoria Local (InMemory)',
     architecture: 'Clean Architecture (SOLID)',
   });
 });
@@ -80,9 +92,10 @@ app.get('/api/health', (_req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`=================================================`);
   console.log(` 🏡 Servidor de Gestión del Hogar Iniciado`);
-  console.log(` 🚀 Escuchando en: http://localhost:${PORT}`);
-  console.log(` 📦 API Finanzas:   http://localhost:${PORT}/api/finances/summary`);
-  console.log(` 🍏 API Despensa:   http://localhost:${PORT}/api/inventory/items`);
+  console.log(` 🚀 Escuchando en:   http://localhost:${PORT}`);
+  console.log(` 📦 Persistencia:    ${supabase ? '☁️ Supabase (PostgreSQL en la Nube)' : '💾 Memoria Local (InMemory)'}`);
+  console.log(` 📊 API Finanzas:    http://localhost:${PORT}/api/finances/summary`);
+  console.log(` 🍏 API Despensa:    http://localhost:${PORT}/api/inventory/items`);
   console.log(`=================================================`);
 });
 
