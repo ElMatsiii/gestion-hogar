@@ -126,33 +126,33 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
       />
 
       {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-emerald-600" />
-              Lista de Compras Inteligente
+              <ShoppingCart className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>Lista de Compras Inteligente</span>
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-500">
               Generada automáticamente cuando un producto baja de su stock mínimo en la despensa.
               ¡Al marcarlo como comprado, se reabastece en tu inventario automáticamente!
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             {purchasedItems.length > 0 && (
               <button
                 onClick={promptClearPurchased}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold transition-colors"
+                className="w-full sm:w-auto justify-center flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs sm:text-sm font-semibold transition-colors"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-4 h-4 shrink-0" />
                 <span>Limpiar Comprados ({purchasedItems.length})</span>
               </button>
             )}
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors"
+              className="w-full sm:w-auto justify-center flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition-colors"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="w-4 h-4 shrink-0" />
               <span>Agregar Artículo</span>
             </button>
           </div>
@@ -160,7 +160,7 @@ export const ShoppingDashboard: React.FC<ShoppingDashboardProps> = ({ items, onR
       </div>
 
       {/* PENDING ITEMS */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-xs">
         <h3 className="font-bold text-slate-900 text-base mb-4 flex items-center gap-2">
           <span>Por Comprar</span>
           <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">

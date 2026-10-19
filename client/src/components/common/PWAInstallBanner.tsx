@@ -22,8 +22,8 @@ export const PWAInstallBanner: React.FC = () => {
     <div
       role="banner"
       aria-label="Instalación de HogarSync"
-      style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
-      className="fixed left-3 right-3 sm:left-auto sm:right-6 sm:bottom-6 sm:max-w-md z-50 transition-all duration-300 ease-out"
+      style={{ bottom: 'calc(4.75rem + env(safe-area-inset-bottom, 0px))' }}
+      className="fixed left-3 right-3 sm:left-auto sm:right-6 sm:!bottom-6 sm:max-w-md z-50 transition-all duration-300 ease-out"
     >
       <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-emerald-100 ring-1 ring-black/5 flex items-start gap-3">
         {/* App Icon */}

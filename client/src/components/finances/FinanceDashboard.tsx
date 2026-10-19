@@ -366,9 +366,9 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
   return (
     <div className="space-y-8 pb-12">
       {/* 1. TOP FINANCIAL SUMMARY CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Family Income */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Ingreso Familiar Total</span>
             <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
@@ -384,7 +384,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
         </div>
 
         {/* Remaining Household Pool */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Fondo Común Disponible</span>
             <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
@@ -404,7 +404,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
         </div>
 
         {/* Total Expenses Breakdown */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Gastos Totales</span>
             <div className="p-2 rounded-xl bg-rose-50 text-rose-600">
@@ -421,7 +421,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
         </div>
 
         {/* Savings Rate */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Tasa de Ahorro Familiar</span>
             <div className="p-2 rounded-xl bg-teal-50 text-teal-600">
@@ -675,56 +675,58 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
       </div>
 
       {/* 4. EXPENSES SECTION WITH SUB-VIEWS (TABLE VS CHARTS) & RECEIPT SCANNER */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6">
           <div>
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-indigo-600" />
-              Control de Gastos y Analítica
+              <CreditCard className="w-5 h-5 text-indigo-600 shrink-0" />
+              <span>Control de Gastos y Analítica</span>
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-500">
               Registra pagos, escanea tickets de compra o visualiza gráficos de consumo familiar.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             {/* View Switcher Button */}
-            <div className="bg-slate-100 p-1 rounded-xl flex text-xs font-bold border border-slate-200">
+            <div className="bg-slate-100 p-1 rounded-xl grid grid-cols-2 sm:flex text-xs font-bold border border-slate-200 w-full sm:w-auto">
               <button
                 onClick={() => setActiveSubView('table')}
-                className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
                   activeSubView === 'table' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
                 }`}
               >
-                <ListFilter className="w-3.5 h-3.5" />
-                <span>Lista de Pagos</span>
+                <ListFilter className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Lista de Pagos</span>
+                <span className="sm:hidden">Lista</span>
               </button>
               <button
                 onClick={() => setActiveSubView('analytics')}
-                className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
                   activeSubView === 'analytics' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600'
                 }`}
               >
-                <BarChart3 className="w-3.5 h-3.5" />
-                <span>Gráficos y Estadísticas</span>
+                <BarChart3 className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Gráficos y Estadísticas</span>
+                <span className="sm:hidden">Gráficos</span>
               </button>
             </div>
 
             {/* Smart Receipt Scanner Button */}
             <button
               onClick={() => setShowScannerModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition-colors shadow-xs"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition-colors shadow-xs"
             >
-              <Camera className="w-4 h-4 text-indigo-600" />
+              <Camera className="w-4 h-4 text-indigo-600 shrink-0" />
               <span>Escanear Boleta</span>
             </button>
 
             {/* Manual Register */}
             <button
               onClick={openExpenseModal}
-              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="w-4 h-4 shrink-0" />
               <span>Registrar Gasto</span>
             </button>
           </div>
@@ -739,12 +741,12 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
         {activeSubView === 'table' && (
           <>
             {/* Filters */}
-            <div className="flex flex-wrap items-center gap-3 mb-6 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-sm">
-              <span className="text-slate-500 font-medium">Filtrar:</span>
-              <div className="flex rounded-lg bg-white border border-slate-200 p-0.5">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 mb-6 p-2.5 sm:p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs sm:text-sm">
+              <span className="text-slate-500 font-medium hidden sm:inline">Filtrar:</span>
+              <div className="grid grid-cols-3 sm:flex rounded-lg bg-white border border-slate-200 p-0.5 w-full sm:w-auto">
                 <button
                   onClick={() => setExpenseFilter('ALL')}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold ${
+                  className={`px-2 sm:px-3 py-1 rounded-md text-xs font-semibold text-center transition-colors ${
                     expenseFilter === 'ALL' ? 'bg-indigo-600 text-white' : 'text-slate-600'
                   }`}
                 >
@@ -752,28 +754,30 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
                 </button>
                 <button
                   onClick={() => setExpenseFilter('SHARED')}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold ${
+                  className={`px-2 sm:px-3 py-1 rounded-md text-xs font-semibold text-center transition-colors ${
                     expenseFilter === 'SHARED' ? 'bg-indigo-600 text-white' : 'text-slate-600'
                   }`}
                 >
-                  Compartidos Hogar
+                  <span className="hidden sm:inline">Compartidos Hogar</span>
+                  <span className="sm:hidden">Hogar</span>
                 </button>
                 <button
                   onClick={() => setExpenseFilter('PERSONAL')}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold ${
+                  className={`px-2 sm:px-3 py-1 rounded-md text-xs font-semibold text-center transition-colors ${
                     expenseFilter === 'PERSONAL' ? 'bg-indigo-600 text-white' : 'text-slate-600'
                   }`}
                 >
-                  Personales
+                  <span className="hidden sm:inline">Personales</span>
+                  <span className="sm:hidden">Personal</span>
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 ml-auto">
-                <span className="text-slate-500 text-xs">Por integrante:</span>
+              <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
+                <span className="text-slate-500 text-xs shrink-0">Por integrante:</span>
                 <select
                   value={selectedMemberFilter}
                   onChange={(e) => setSelectedMemberFilter(e.target.value)}
-                  className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1 font-medium text-slate-700"
+                  className="w-full sm:w-auto text-xs bg-white border border-slate-200 rounded-lg px-2 py-1 font-medium text-slate-700"
                 >
                   <option value="ALL">Todos los integrantes</option>
                   {members.map((m) => (

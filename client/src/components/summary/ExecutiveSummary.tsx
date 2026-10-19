@@ -39,30 +39,30 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   return (
     <div className="space-y-8 pb-12">
       {/* Hero Welcome & Savings Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white p-8 shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white p-5 sm:p-8 shadow-xl">
         <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-4 border border-emerald-500/30">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-3 sm:mb-4 border border-emerald-500/30">
             <PiggyBank className="w-4 h-4" />
             Control Financiero & Desperdicio Cero
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2 sm:mb-3">
             Gestión Inteligente del Hogar
           </h1>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-300 text-xs sm:text-base leading-relaxed">
             Todos los ingresos de la familia unidos en un solo pozo común transparente, con seguimiento de gastos personales y control riguroso de la despensa para ahorrar al máximo.
           </p>
 
-          <div className="mt-6 flex flex-wrap gap-4">
+          <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row gap-2.5 sm:gap-4">
             <button
               onClick={() => setActiveTab('finances')}
-              className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-md flex items-center gap-2"
+              className="w-full sm:w-auto justify-center px-4 sm:px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-xl text-xs sm:text-sm transition-all shadow-md flex items-center gap-2"
             >
               <Wallet className="w-4 h-4" />
               <span>Ver Finanzas Familiares</span>
             </button>
             <button
               onClick={() => setActiveTab('inventory')}
-              className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-sm transition-all backdrop-blur-xs flex items-center gap-2 border border-white/10"
+              className="w-full sm:w-auto justify-center px-4 sm:px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs sm:text-sm transition-all backdrop-blur-xs flex items-center gap-2 border border-white/10"
             >
               <Refrigerator className="w-4 h-4" />
               <span>Revisar Despensa ({inventory.length} items)</span>
@@ -75,9 +75,9 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
       </div>
 
       {/* Main KPI Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         {/* Card 1: Pozo Familiar */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-slate-500 mb-3">
               <span className="text-xs font-bold uppercase tracking-wider">Ahorro y Fondo Común</span>
@@ -85,7 +85,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
                 <TrendingUp className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-3xl font-black text-slate-900 mb-1">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 mb-1">
               {formatCurrency(summary?.remainingFamilyPool || 0)}
             </div>
             <p className="text-xs text-slate-500">
@@ -93,7 +93,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
             </p>
           </div>
 
-          <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
+          <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
             <span className="text-slate-500">Tasa de Ahorro:</span>
             <span className="text-emerald-600 font-extrabold text-sm">
               {summary?.savingsRatePercentage || 0}% de los ingresos
@@ -102,7 +102,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
         </div>
 
         {/* Card 2: Rotación de Alimentos */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-slate-500 mb-3">
               <span className="text-xs font-bold uppercase tracking-wider">Rotación de Alimentos</span>
@@ -110,7 +110,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
                 <Clock className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-3xl font-black text-slate-900 mb-1">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 mb-1">
               {expiringItems.length}
             </div>
             <p className="text-xs text-slate-500">
@@ -118,7 +118,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
             </p>
           </div>
 
-          <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+          <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
             <button
               onClick={() => setActiveTab('inventory')}
               className="text-rose-600 hover:underline font-bold flex items-center gap-1"
@@ -130,7 +130,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
         </div>
 
         {/* Card 3: Lista de Compras */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-slate-500 mb-3">
               <span className="text-xs font-bold uppercase tracking-wider">Compras Pendientes</span>
@@ -138,7 +138,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
                 <ShoppingCart className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-3xl font-black text-slate-900 mb-1">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 mb-1">
               {pendingShopping.length}
             </div>
             <p className="text-xs text-slate-500">
@@ -146,7 +146,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
             </p>
           </div>
 
-          <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+          <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
             <button
               onClick={() => setActiveTab('shopping')}
               className="text-amber-700 hover:underline font-bold flex items-center gap-1"
@@ -159,13 +159,13 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
       </div>
 
       {/* Two columns: Finance distribution + Food Rotation urgency */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Family Incomes and Contributions */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-xs">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-              <Wallet className="w-4 h-4 text-emerald-600" />
-              Distribución del Ingreso Familiar ({formatCurrency(summary?.totalFamilyIncome || 0)})
+            <h3 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+              <Wallet className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="truncate">Distribución del Ingreso Familiar ({formatCurrency(summary?.totalFamilyIncome || 0)})</span>
             </h3>
             <button
               onClick={() => setActiveTab('finances')}

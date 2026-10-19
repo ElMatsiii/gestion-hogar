@@ -249,8 +249,8 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-slate-100">
           <div className="flex items-center space-x-3">
@@ -464,16 +464,26 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                   scannedItems.map((item) => (
                     <div
                       key={item.id}
-                      className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-2 shadow-2xs hover:border-slate-300"
+                      className="p-3 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shadow-2xs hover:border-slate-300"
                     >
                       <div className="flex-1 min-w-0">
-                        <input
-                          type="text"
-                          value={item.name}
-                          onChange={(e) => handleUpdateItem(item.id, 'name', e.target.value)}
-                          className="font-bold text-slate-800 text-xs w-full bg-transparent focus:underline"
-                        />
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => handleUpdateItem(item.id, 'name', e.target.value)}
+                            className="font-bold text-slate-800 text-xs w-full bg-transparent focus:underline"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="sm:hidden text-slate-300 hover:text-rose-600 p-1 shrink-0"
+                            title="Quitar de la lista"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] text-slate-500 mt-1">
                           <select
                             value={item.category}
                             onChange={(e) => handleUpdateItem(item.id, 'category', e.target.value)}
@@ -504,7 +514,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2 shrink-0">
+                      <div className="flex items-center justify-between sm:justify-end space-x-2 shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                         <div className="flex items-center gap-1 text-xs">
                           <input
                             type="number"
@@ -536,8 +546,10 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                         </div>
 
                         <button
+                          type="button"
                           onClick={() => handleRemoveItem(item.id)}
-                          className="text-slate-300 hover:text-rose-600 p-1"
+                          className="hidden sm:inline-block text-slate-300 hover:text-rose-600 p-1"
+                          title="Quitar"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

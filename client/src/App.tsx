@@ -115,10 +115,10 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 md:pb-12 overflow-x-hidden">
         {/* Backend Configuration Banner for Vercel */}
         {(showConfig || (isVercel && getApiBase() === '/api')) && (
-          <div className="mb-6 p-5 rounded-2xl bg-indigo-900 text-white shadow-lg border border-indigo-700 animate-in fade-in">
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-indigo-900 text-white shadow-lg border border-indigo-700 animate-in fade-in">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-start space-x-3">
                 <div className="p-2 rounded-xl bg-white/10 shrink-0">
@@ -134,7 +134,7 @@ export function App() {
                 </div>
               </div>
 
-              <form onSubmit={handleConnectBackend} className="flex w-full md:w-auto items-center gap-2">
+              <form onSubmit={handleConnectBackend} className="flex flex-col sm:flex-row w-full md:w-auto items-stretch sm:items-center gap-2">
                 <input
                   type="url"
                   required
@@ -156,16 +156,16 @@ export function App() {
         )}
 
         {/* Top bar controls */}
-        <div className="flex justify-between items-center mb-4 text-xs">
+        <div className="flex justify-between items-center mb-4 text-xs gap-2">
           <button
             onClick={() => setShowConfig(!showConfig)}
-            className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors"
+            className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors min-w-0"
           >
-            <Server className="w-3.5 h-3.5" />
-            <span>
-              Servidor API:{' '}
-              <strong className="font-mono text-[11px] text-slate-700">
-                {getStoredApiUrl() || (isVercel ? 'No conectado (Vercel local)' : 'Localhost:3001')}
+            <Server className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">
+              Servidor:{' '}
+              <strong className="font-mono text-[11px] text-slate-700 truncate">
+                {getStoredApiUrl() ? getStoredApiUrl().replace(/^https?:\/\//, '') : (isVercel ? 'Vercel (local)' : 'Localhost:3001')}
               </strong>
             </span>
           </button>
@@ -173,10 +173,10 @@ export function App() {
           <button
             onClick={() => loadData(true)}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors"
+            className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors shrink-0"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-emerald-600' : ''}`} />
-            <span>{isRefreshing ? 'Actualizando datos...' : 'Actualizar'}</span>
+            <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${isRefreshing ? 'animate-spin text-emerald-600' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
           </button>
         </div>
 
@@ -214,7 +214,7 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
+      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400 mb-16 md:mb-0 px-4">
         <p>HogarSync · Sistema de Finanzas Compartidas y Rotación de Despensa</p>
         <p className="mt-1">Arquitectura Limpia (Clean Architecture) · Principios SOLID · Node.js & React</p>
       </footer>

@@ -201,8 +201,8 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
       />
 
       {/* 1. METRICS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex justify-between items-center text-slate-500 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Total en Despensa</span>
             <Refrigerator className="w-5 h-5 text-emerald-600" />
@@ -211,7 +211,7 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
           <p className="text-xs text-slate-500 mt-1">Variedad de insumos registrados</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex justify-between items-center text-slate-500 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Poco Stock (Comprar)</span>
             <AlertTriangle className="w-5 h-5 text-amber-500" />
@@ -220,7 +220,7 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
           <p className="text-xs text-slate-500 mt-1">Bajo el umbral mínimo fijado</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex justify-between items-center text-slate-500 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Rotación Urgente</span>
             <Clock className="w-5 h-5 text-rose-500" />
@@ -229,7 +229,7 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
           <p className="text-xs text-slate-500 mt-1">Vencen en menos de 3 días o vencidos</p>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-600 to-teal-700 p-5 rounded-2xl text-white shadow-md">
+        <div className="bg-gradient-to-br from-emerald-600 to-teal-700 p-4 sm:p-5 rounded-2xl text-white shadow-md">
           <div className="flex justify-between items-center opacity-90 mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">Ahorro por Desperdicio Cero</span>
             <Flame className="w-5 h-5 text-amber-300" />
@@ -243,11 +243,11 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
 
       {/* 2. ROTATION ALERTS BANNER (FIFO) */}
       {expiringItems.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-xs animate-in fade-in">
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 shadow-xs animate-in fade-in">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
-              <Flame className="w-5 h-5 text-amber-600" />
-              <h3 className="font-bold text-amber-950 text-base">
+              <Flame className="w-5 h-5 text-amber-600 shrink-0" />
+              <h3 className="font-bold text-amber-950 text-sm sm:text-base">
                 Alimentos con Rotación Prioritaria (Consumir Primero):
               </h3>
             </div>
@@ -259,7 +259,7 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
               <span>¿Qué cocinamos con esto?</span>
             </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
             {expiringItems.map((item) => (
               <div
                 key={item.id}
@@ -279,51 +279,51 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
       )}
 
       {/* 3. INVENTORY CONTROLS & LIST */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6">
           <div>
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Refrigerator className="w-5 h-5 text-emerald-600" />
-              Inventario de Despensa y Mercadería
+              <Refrigerator className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>Inventario de Despensa y Mercadería</span>
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-500">
               Control exacto de existencia, aviso cuando hay poco y control de rotación de alimentos.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <button
               onClick={() => setShowPlannerModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-sm font-bold transition-colors shadow-xs"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs sm:text-sm font-bold transition-colors shadow-xs"
               title="Planificador semanal de comidas"
             >
-              <Calendar className="w-4 h-4 text-indigo-600" />
+              <Calendar className="w-4 h-4 text-indigo-600 shrink-0" />
               <span>Menú Semanal</span>
             </button>
 
             <button
               onClick={() => setShowRecipeModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-sm font-bold shadow-xs transition-all hover:scale-[1.02]"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-all"
               title="Sugerir recetas según ingredientes disponibles y por vencer"
             >
-              <ChefHat className="w-4 h-4" />
+              <ChefHat className="w-4 h-4 shrink-0" />
               <span>¿Qué cocinamos hoy?</span>
             </button>
 
             {onNavigateToShopping && (
               <button
                 onClick={onNavigateToShopping}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition-colors"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold transition-colors"
               >
-                <span>Lista de Compras</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Lista Compras</span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
               </button>
             )}
 
             <button
               onClick={() => setShowItemModal(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition-colors"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="w-4 h-4 shrink-0" />
               <span>Nuevo Producto</span>
             </button>
           </div>
@@ -549,7 +549,7 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
                     Cantidad Actual
