@@ -101,13 +101,22 @@ test('Finances & Members Flow: CRUD members, expenses, subscriptions, and summar
   });
   assert.equal(subRes.status, 201);
 
-  // 5. Toggle subscription
+  // 5. Check financial summary while subscription is active (includes 200,000 expense + 30,000 subscription)
+  const activeSumRes = await request('GET', '/api/finances/summary');
+  assert.equal(activeSumRes.status, 200);
+  assert.equal(activeSumRes.body.totalExpenses, 230000);
+  assert.equal(activeSumRes.body.remainingFamilyPool, 970000);
+  const subCategory = activeSumRes.body.categoryBreakdown.find((c) => c.category === 'SUSCRIPCIONES');
+  assert.ok(subCategory);
+  assert.equal(subCategory.total, 30000);
+
+  // 6. Toggle subscription inactive
   const subId = subRes.body.id;
   const togSub = await request('PATCH', `/api/finances/subscriptions/${subId}/toggle`);
   assert.equal(togSub.status, 200);
   assert.equal(togSub.body.isActive, false);
 
-  // 6. Check financial summary
+  // 7. Check financial summary after subscription is paused
   const sumRes = await request('GET', '/api/finances/summary');
   assert.equal(sumRes.status, 200);
   assert.equal(sumRes.body.remainingFamilyPool, 1000000);

@@ -66,6 +66,17 @@ export class GetFinancialSummaryUseCase {
       categoryMap.set(expense.category, currentCat + expense.amount);
     });
 
+    activeSubscriptions.forEach((sub) => {
+      if (sub.type === 'SHARED') {
+        totalSharedExpenses += sub.amount;
+      } else {
+        totalPersonalExpenses += sub.amount;
+      }
+
+      const currentCat = categoryMap.get('SUSCRIPCIONES') || 0;
+      categoryMap.set('SUSCRIPCIONES', currentCat + sub.amount);
+    });
+
     const totalExpenses = totalSharedExpenses + totalPersonalExpenses;
     const remainingFamilyPool = totalFamilyIncome - totalExpenses;
     const savingsRatePercentage =
