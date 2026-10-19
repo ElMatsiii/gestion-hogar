@@ -4,11 +4,10 @@ import {
   Refrigerator,
   ShoppingCart,
   LayoutDashboard,
-  Cloud,
   PiggyBank,
 } from 'lucide-react';
 
-export type ActiveTab = 'summary' | 'finances' | 'inventory' | 'shopping' | 'cloud';
+export type ActiveTab = 'summary' | 'finances' | 'inventory' | 'shopping';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -117,18 +116,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {lowStockCount}
                 </span>
               )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('cloud')}
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'cloud'
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Cloud className="w-4 h-4 text-sky-500" />
-              <span className="hidden md:inline">Nube & BD</span>
             </button>
           </nav>
         </div>

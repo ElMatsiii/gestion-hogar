@@ -4,7 +4,6 @@ import { ExecutiveSummary } from './components/summary/ExecutiveSummary';
 import { FinanceDashboard } from './components/finances/FinanceDashboard';
 import { InventoryDashboard } from './components/inventory/InventoryDashboard';
 import { ShoppingDashboard } from './components/shopping/ShoppingDashboard';
-import { CloudSetupGuide } from './components/cloud/CloudSetupGuide';
 import {
   FinancialSummaryDTO,
   Member,
@@ -140,8 +139,6 @@ export function App() {
         {activeTab === 'shopping' && (
           <ShoppingDashboard items={shopping} onRefresh={() => loadData(false)} />
         )}
-
-        {activeTab === 'cloud' && <CloudSetupGuide />}
       </main>
 
       {/* Footer */}
