@@ -7,17 +7,31 @@ import {
   ShoppingItem,
 } from '../types';
 
-const getApiBase = () => {
-  const envUrl = import.meta.env.VITE_API_URL;
+export const getApiBase = () => {
+  const localUrl = typeof window !== 'undefined' ? localStorage.getItem('hogar_api_url') : null;
+  const envUrl = localUrl || import.meta.env.VITE_API_URL;
   if (!envUrl) return '/api';
-  const cleanUrl = envUrl.replace(/\/+$/, '');
+  const cleanUrl = envUrl.trim().replace(/\/+$/, '');
   return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
 };
 
-const API_BASE = getApiBase();
+export const setCustomApiUrl = (url: string) => {
+  if (typeof window !== 'undefined') {
+    const clean = url.trim().replace(/\/+$/, '');
+    localStorage.setItem('hogar_api_url', clean);
+  }
+};
+
+export const getStoredApiUrl = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('hogar_api_url') || import.meta.env.VITE_API_URL || '';
+  }
+  return '';
+};
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const base = getApiBase();
+  const res = await fetch(`${base}${endpoint}`, {
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers,
@@ -35,6 +49,18 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  // Health
+  checkHealth: async (urlOverride?: string) => {
+    const base = urlOverride
+      ? (urlOverride.trim().replace(/\/+$/, '').endsWith('/api')
+          ? urlOverride.trim().replace(/\/+$/, '')
+          : `${urlOverride.trim().replace(/\/+$/, '')}/api`)
+      : getApiBase();
+    const res = await fetch(`${base}/health`);
+    if (!res.ok) throw new Error('Servidor offline');
+    return res.json();
+  },
+
   // Finances
   getFinancialSummary: (month?: string) =>
     request<FinancialSummaryDTO>(`/finances/summary${month ? `?month=${month}` : ''}`),
