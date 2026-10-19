@@ -4,10 +4,8 @@ import {
   Refrigerator,
   ShoppingCart,
   TrendingUp,
-  AlertTriangle,
   Clock,
   ArrowRight,
-  ShieldCheck,
   PiggyBank,
   CheckCircle2,
 } from 'lucide-react';
@@ -33,7 +31,6 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   const expiringItems = inventory.filter(
     (i) => i.expirationStatus === 'EXPIRING_SOON' || i.expirationStatus === 'EXPIRED'
   );
-  const lowStockItems = inventory.filter((i) => i.isLowStock);
   const pendingShopping = shopping.filter((i) => !i.isPurchased);
 
   return (

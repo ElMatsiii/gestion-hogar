@@ -13,16 +13,30 @@ import {
   ShoppingItem,
 } from './types';
 import { api, getStoredApiUrl, setCustomApiUrl, getApiBase } from './services/api';
-import { RefreshCw, Server, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Server } from 'lucide-react';
 import { useNotification } from './context/NotificationContext';
 import { PWAInstallBanner } from './components/common/PWAInstallBanner';
+
+async function fetchAllHouseholdData(): Promise<
+  [FinancialSummaryDTO | null, Member[], Expense[], Subscription[], InventoryItem[], ShoppingItem[]]
+> {
+  return Promise.all([
+    api.getFinancialSummary().catch((e) => {
+      console.warn('Backend no responde:', e);
+      return null;
+    }),
+    api.getMembers().catch(() => []),
+    api.getExpenses().catch(() => []),
+    api.getSubscriptions().catch(() => []),
+    api.getInventoryItems().catch(() => []),
+    api.getShoppingList().catch(() => []),
+  ]);
+}
 
 export function App() {
   const { showSuccess, showError, showWarning } = useNotification();
   const [activeTab, setActiveTab] = useState<ActiveTab>('summary');
-  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Backend connection state
   const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
@@ -40,39 +54,57 @@ export function App() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [shopping, setShopping] = useState<ShoppingItem[]>([]);
 
-  const loadData = useCallback(async (showIndicator = false) => {
-    if (showIndicator) setIsRefreshing(true);
-    setError(null);
-    try {
-      const [sumData, memData, expData, subData, invData, shopData] = await Promise.all([
-        api.getFinancialSummary().catch((e) => {
-          console.warn('Backend no responde:', e);
-          return null;
-        }),
-        api.getMembers().catch(() => []),
-        api.getExpenses().catch(() => []),
-        api.getSubscriptions().catch(() => []),
-        api.getInventoryItems().catch(() => []),
-        api.getShoppingList().catch(() => []),
-      ]);
-
+  const applyFetchedData = useCallback(
+    ([sumData, memData, expData, subData, invData, shopData]: [
+      FinancialSummaryDTO | null,
+      Member[],
+      Expense[],
+      Subscription[],
+      InventoryItem[],
+      ShoppingItem[],
+    ]) => {
       if (sumData) setSummary(sumData);
       setMembers(memData);
       setExpenses(expData);
       setSubscriptions(subData);
       setInventory(invData);
       setShopping(shopData);
-    } catch (err: any) {
-      setError(err.message || 'Error cargando datos del servidor');
+    },
+    []
+  );
+
+  const loadData = useCallback(async () => {
+    try {
+      const data = await fetchAllHouseholdData();
+      applyFetchedData(data);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error cargando datos del servidor';
+      showError(message);
     } finally {
-      setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [showError, applyFetchedData]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let isMounted = true;
+
+    fetchAllHouseholdData()
+      .then((data) => {
+        if (isMounted) applyFetchedData(data);
+      })
+      .catch((err: unknown) => {
+        if (!isMounted) return;
+        const message = err instanceof Error ? err.message : 'Error cargando datos del servidor';
+        showError(message);
+      })
+      .finally(() => {
+        if (isMounted) setIsRefreshing(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showError, applyFetchedData]);
 
   const handleConnectBackend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,13 +118,15 @@ export function App() {
       setCustomApiUrl(urlInput);
       setShowConfig(false);
       showSuccess('¡Conectado exitosamente con tu backend en Render!');
-      loadData(true);
-    } catch (err: any) {
+      setIsRefreshing(true);
+      loadData();
+    } catch {
       // Still allow saving if Render is waking up from sleep
       setCustomApiUrl(urlInput);
       showWarning('URL guardada. Si Render está en reposo, puede tardar ~30s en despertar.');
       setShowConfig(false);
-      loadData(true);
+      setIsRefreshing(true);
+      loadData();
     } finally {
       setTestingConnection(false);
     }
@@ -171,7 +205,10 @@ export function App() {
           </button>
 
           <button
-            onClick={() => loadData(true)}
+            onClick={() => {
+              setIsRefreshing(true);
+              loadData();
+            }}
             disabled={isRefreshing}
             className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors shrink-0"
           >
@@ -196,20 +233,20 @@ export function App() {
             members={members}
             expenses={expenses}
             subscriptions={subscriptions}
-            onRefresh={() => loadData(false)}
+            onRefresh={loadData}
           />
         )}
 
         {activeTab === 'inventory' && (
           <InventoryDashboard
             items={inventory}
-            onRefresh={() => loadData(false)}
+            onRefresh={loadData}
             onNavigateToShopping={() => setActiveTab('shopping')}
           />
         )}
 
         {activeTab === 'shopping' && (
-          <ShoppingDashboard items={shopping} onRefresh={() => loadData(false)} />
+          <ShoppingDashboard items={shopping} onRefresh={loadData} />
         )}
       </main>
 

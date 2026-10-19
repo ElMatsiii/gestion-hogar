@@ -1,25 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   PieChart,
   BarChart3,
-  TrendingDown,
   TrendingUp,
   Tag,
-  DollarSign,
-  Calendar,
   Layers,
-  ArrowUpRight,
-  ArrowDownRight,
 } from 'lucide-react';
-import { FinancialSummaryDTO, Expense } from '../../types';
+import { FinancialSummaryDTO } from '../../types';
 
 interface FinanceChartsProps {
   summary: FinancialSummaryDTO | null;
-  expenses: Expense[];
 }
 
-export const FinanceCharts: React.FC<FinanceChartsProps> = ({ summary, expenses }) => {
-  const [comparisonPeriod, setComparisonPeriod] = useState<'CURRENT' | 'PREVIOUS'>('CURRENT');
+export const FinanceCharts: React.FC<FinanceChartsProps> = ({ summary }) => {
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);

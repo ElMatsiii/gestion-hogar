@@ -13,7 +13,8 @@ import {
   ListFilter,
   Camera,
   Edit2,
-  Calendar,
+  Home,
+  User,
 } from 'lucide-react';
 import {
   FinancialSummaryDTO,
@@ -92,7 +93,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
     assignedToMemberId: string;
     date: string;
     notes: string;
-  }>({
+  }>(() => ({
     title: '',
     amount: 0,
     category: 'ALIMENTACION',
@@ -101,7 +102,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
     assignedToMemberId: '',
     date: new Date().toISOString().split('T')[0],
     notes: '',
-  });
+  }));
 
   const [subForm, setSubForm] = useState<{
     title: string;
@@ -654,8 +655,9 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
                     {sub.type === 'SHARED' ? (
                       <span className="text-emerald-700 font-semibold">Hogar Compartido</span>
                     ) : (
-                      <span className="text-slate-600 font-semibold">
-                        👤 {getMemberName(sub.assignedToMemberId)}
+                      <span className="text-slate-600 font-semibold inline-flex items-center gap-1">
+                        <User className="w-3.5 h-3.5 text-slate-500" />
+                        {getMemberName(sub.assignedToMemberId)}
                       </span>
                     )}
                   </span>
@@ -734,7 +736,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
 
         {/* SUBVIEW 1: CHARTS & ANALYTICS */}
         {activeSubView === 'analytics' && (
-          <FinanceCharts summary={summary} expenses={expenses} />
+          <FinanceCharts summary={summary} />
         )}
 
         {/* SUBVIEW 2: EXPENSES TABLE */}
@@ -1122,7 +1124,10 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
                         : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    <div className="font-bold text-xs">🏠 Compartido (Hogar)</div>
+                    <div className="font-bold text-xs flex items-center gap-1.5">
+                      <Home className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Compartido (Hogar)</span>
+                    </div>
                     <div className="text-[11px] text-slate-500">Beneficia a toda la familia</div>
                   </button>
                   <button
@@ -1134,7 +1139,10 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
                         : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    <div className="font-bold text-xs">👤 Personal</div>
+                    <div className="font-bold text-xs flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Personal</span>
+                    </div>
                     <div className="text-[11px] text-slate-500">Gasto propio de 1 integrante</div>
                   </button>
                 </div>
@@ -1290,24 +1298,26 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => setSubForm({ ...subForm, type: 'SHARED' })}
-                    className={`p-2 rounded-lg border text-xs font-bold ${
+                    className={`p-2 rounded-lg border text-xs font-bold inline-flex items-center justify-center gap-1.5 ${
                       subForm.type === 'SHARED'
                         ? 'bg-teal-50 border-teal-500 text-teal-800'
                         : 'border-slate-200 text-slate-600'
                     }`}
                   >
-                    🏠 Compartida Hogar
+                    <Home className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Compartida Hogar</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setSubForm({ ...subForm, type: 'PERSONAL' })}
-                    className={`p-2 rounded-lg border text-xs font-bold ${
+                    className={`p-2 rounded-lg border text-xs font-bold inline-flex items-center justify-center gap-1.5 ${
                       subForm.type === 'PERSONAL'
                         ? 'bg-amber-50 border-amber-500 text-amber-800'
                         : 'border-slate-200 text-slate-600'
                     }`}
                   >
-                    👤 Personal
+                    <User className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Personal</span>
                   </button>
                 </div>
               </div>

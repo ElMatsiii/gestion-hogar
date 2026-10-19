@@ -1,132 +1,212 @@
-# 🏡 HogarSync — Sistema de Gestión del Hogar
+# HogarSync - Sistema de Gestion del Hogar
 
-> **Plataforma web para el control de finanzas compartidas y rotación inteligente de despensa/alimentos.**
-> Construida bajo los principios de **Clean Architecture** (Arquitectura Limpia) y principios **SOLID** utilizando **React, Tailwind CSS, Node.js y TypeScript**.
-
----
-
-## 🎯 Objetivo del Proyecto
-
-La aplicación resuelve dos problemas fundamentales en la convivencia del hogar para fomentar el ahorro y la organización:
-
-### 1. Sección de Finanzas del Hogar (Transparencia & Ahorro)
-- **Pozo Familiar Unificado:** Todos los ingresos/sueldos de los integrantes se contabilizan como un solo pozo común familiar.
-- **Transparencia Individual:** Permite registrar y visualizar cuánto aporta cada integrante y su porcentaje del ingreso total.
-- **Gastos Compartidos vs Personales:** 
-  - **Compartidos (Hogar):** Arriendo, luz, agua, internet, compras del supermercado para la casa. Afectan directamente el pozo familiar.
-  - **Personales:** Gastos obligatorios, créditos, planes telefónicos, gimnasio o suscripciones personales asignadas exclusivamente a quien corresponde.
-- **Suscripciones Fijas:** Control de servicios mensuales (Netflix, Spotify, Google One, etc.) con día de cobro y asignación (familiar o individual).
-- **Métricas Clave:** Ingreso total, fondo disponible restante, gastos totales y tasa de ahorro mensual proyectada.
-
-### 2. Sección de Despensa y Rotación de Alimentos (Desperdicio Cero)
-- **Control de Existencias:** Monitoreo en tiempo real de qué alimentos y artículos de aseo hay en casa y en qué ubicación (Refrigerador, Despensa, Congelador, Lavandería).
-- **Alerta de Stock Bajo:** Avisa automáticamente cuando la cantidad actual es inferior al umbral mínimo recomendado.
-- **Rotación FIFO (First In, First Out):** Detección de alimentos próximos a vencer (menos de 3 días) para consumirlos con prioridad y evitar botar comida y dinero a la basura.
-- **Lista de Compras Inteligente:**
-  - Se nutre automáticamente con los productos que tienen stock bajo.
-  - Permite agregar artículos manuales.
-  - **Reabastecimiento con 1 Clic:** Al marcar un producto como comprado en el supermercado, se suma automáticamente al stock de la despensa.
+> Plataforma web para el control de finanzas compartidas familiares y rotacion inteligente de despensa y alimentos.
+> Construida bajo los principios de Clean Architecture (Arquitectura Limpia) y principios SOLID utilizando React, Tailwind CSS, Node.js y TypeScript.
 
 ---
 
-## 🏛️ Arquitectura Limpia (Clean Architecture) & Principios SOLID
+## 1. Descripcion General del Sistema
 
-El código del backend (`/server`) y frontend (`/client`) está desacoplado siguiendo arquitectura hexagonal / limpia:
+HogarSync aborda los desafios centrales de la administracion domestica moderna: optimizar la economia familiar mediante un pozo comun transparente y eliminar el desperdicio de comida mediante gestion inteligente de despensa (FIFO) y recetas adaptativas.
+
+El sistema esta disenado con enfoque mobile-first como Progressive Web App (PWA) instalable en Android e iOS, ofreciendo navegacion nativa, sincronizacion en tiempo real y persistencia flexible tanto en memoria local para desarrollo como en PostgreSQL en la nube via Supabase.
+
+---
+
+## 2. Caracteristicas y Modulos Principales
+
+### Modulo de Finanzas Familiares
+- **Pozo Familiar Unificado:** Centraliza los ingresos mensuales de todos los miembros del hogar en un unico fondo comun consolidado.
+- **Transparencia y Distribucion:** Visualizacion del porcentaje de aporte y contribucion economica neta de cada integrante.
+- **Gastos Compartidos vs. Personales:**
+  - **Compartidos (Hogar):** Arriendo, servicios basicos (luz, agua, internet, gas) y compras de provisiones; se descuentan directamente del pozo familiar.
+  - **Personales:** Obligaciones individuales (creditos, telefonia personal, educacion, gimnasio) asignadas al integrante correspondiente.
+- **Suscripciones Fijas:** Control de servicios recurrentes (streaming, almacenamiento, software) con dia de facturacion y tipificacion de titularidad.
+- **Metricas e Indicadores Financieros:** Calculo en tiempo real de ingresos totales, gastos acumulados, fondo disponible y tasa proyectada de ahorro mensual.
+- **Graficos de Distribucion:** Visualizacion por centros de costo (vivienda, alimentacion, servicios, etc.) y analisis de aportes netos versus obligaciones.
+
+### Escaner Inteligente de Boletas con IA (Gemini Vision)
+- **Digitalizacion OCR con Gemini AI:** Permite capturar o subir fotos de boletas y comprobantes de supermercado.
+- **Extraccion Automatizada:** El modelo de vision artificial analiza la imagen y extrae el comercio, fecha, total y el desglose de productos (nombre, cantidad, unidad, precio y categoria sugerida).
+- **Ingreso Simultaneo:** Con un solo clic registra tanto el gasto financiero como los productos en la despensa familiar.
+
+### Modulo de Despensa e Inventario (Rotacion FIFO)
+- **Control de Existencias:** Seguimiento de stock clasificado por ubicaciones fisicas (Refrigerador, Despensa, Congelador, Lavanderia).
+- **Semaforo de Vencimiento FIFO (First In, First Out):** Deteccion automatica de productos criticos o proximos a expirar (menos de 3 dias) para priorizar su consumo.
+- **Umbral de Stock Bajo:** Alertas preventivas cuando un articulo desciende por debajo de su cantidad minima recomendada.
+- **Sugerencias de Recetas:** Catalogo dinamico de preparaciones culinarias que prioriza ingredientes con vencimiento inminente, permitiendo descontar los ingredientes utilizados del inventario con un clic.
+- **Planificador Semanal de Comidas:** Organizacion de almuerzos y cenas de lunes a domingo para planificar las compras y optimizar el tiempo.
+
+### Lista de Compras Inteligente
+- **Autonutricion por Stock Bajo:** Los productos de la despensa que caen bajo su nivel minimo se anaden automaticamente a la lista de compras.
+- **Articulos Manuales:** Opcion de anadir compras ocasionales con categoria y notas.
+- **Reabastecimiento con 1 Clic:** Al marcar un item como comprado en el supermercado, el sistema actualiza automaticamente el stock en la despensa.
+
+### Experiencia Movil y Android PWA
+- **Mobile-First Bottom Navigation:** Barra de navegacion inferior nativa optimizada para pulgares en pantallas tactiles, con proteccion de safe-area insets y cero desplazamiento horizontal.
+- **Soporte PWA Completo:** Web App Manifest conforme a los estandares de Android (iconos de 192x192, 512x512 y versiones maskable adaptativas).
+- **Service Worker con Workbox:** Precache de activos estaticos y cache runtime para navegacion rapida.
+- **Banner de Instalacion:** Flujo guiado de instalacion con proteccion contra ejecuciones concurrentes y deteccion de modo standalone (TWA, iOS y navegadores).
+
+---
+
+## 3. Arquitectura del Software (Clean Architecture & SOLID)
+
+El sistema implementa una separacion rigurosa de responsabilidades:
 
 ```
 gestion-hogar/
-├── client/                     # Frontend: React 19 + TypeScript + Tailwind CSS v4
-│   ├── src/
-│   │   ├── components/         # Componentes UI desacoplados
-│   │   │   ├── finances/       # Dashboard de sueldos, pozo familiar y gastos
-│   │   │   ├── inventory/      # Despensa, semáforo de rotación y poco stock
-│   │   │   ├── shopping/       # Lista de compras y autoreposición
-│   │   │   ├── summary/        # Resumen ejecutivo familiar
-│   │   │   └── cloud/          # Guía interactiva de conexión en la nube
-│   │   ├── services/           # Cliente de API tipado
-│   │   └── types/              # DTOs y modelos TypeScript
-│   └── vite.config.ts
-│
-├── server/                     # Backend: Node.js + Express + TypeScript
-│   ├── src/
-│   │   ├── domain/             # CAPA DE DOMINIO (Reglas de negocio puras, sin frameworks)
-│   │   │   ├── entities/       # Member, Expense, Subscription, InventoryItem, ShoppingItem
-│   │   │   └── repositories/   # Interfaces (IMemberRepository, IExpenseRepository, etc.)
-│   │   ├── application/        # CAPA DE APLICACIÓN (Casos de uso)
-│   │   │   └── use-cases/      # GetFinancialSummary, ManageInventory, ManageExpenses...
-│   │   ├── infrastructure/     # CAPA DE INFRAESTRUCTURA (Bases de datos y adaptadores)
-│   │   │   ├── repositories/   # InMemory / Postgres Repositories
-│   │   │   └── database/       # schema.sql para PostgreSQL/Supabase
-│   │   └── presentation/       # CAPA DE PRESENTACIÓN (Controladores y Rutas HTTP)
-│   │       ├── controllers/    # FinancialController, InventoryController
-│   │       ├── routes/         # financeRoutes, inventoryRoutes
-│   │       └── server.ts       # Punto de entrada / Composición de Dependencias (DIP)
-│   └── tsconfig.json
-│
-├── package.json                # Scripts raíz para ejecución simultánea
-└── README.md
+|-- client/                          # Frontend SPA (React 19, TypeScript, Tailwind CSS v4)
+|   |-- src/
+|   |   |-- components/              # Componentes funcionales desacoplados
+|   |   |   |-- common/              # Modales, toasts y banners PWA
+|   |   |   |-- finances/            # Dashboard financiero, graficos y membresias
+|   |   |   |-- inventory/           # Despensa, planificador y recetas
+|   |   |   |-- shopping/            # Lista de compras y abastecimiento
+|   |   |   |-- summary/             # Resumen ejecutivo familiar
+|   |   |   `-- Navbar.tsx           # Navegacion responsive (desktop y bottom mobile)
+|   |   |-- context/                 # Contextos de React (PWA, Notificaciones)
+|   |   |-- services/                # Cliente HTTP tipado con fallback dinamico
+|   |   |-- types/                   # Definicion de contratos y DTOs TypeScript
+|   |   |-- index.css                # Estilos globales con Tailwind CSS v4
+|   |   `-- main.tsx                 # Entrada principal y providers
+|   |-- public/                      # Manifest PWA, favicon SVG e iconos Android
+|   `-- tests/                       # Suite de pruebas automatizadas
+|
+|-- server/                          # Backend API REST (Node.js, Express, TypeScript)
+|   `-- src/
+|       |-- domain/                  # Capa de Dominio (Entidades y Contratos puros)
+|       |   |-- entities/            # Member, Expense, Subscription, InventoryItem, ShoppingItem
+|       |   |-- interfaces/          # IReceiptScannerService
+|       |   `-- repositories/        # IMemberRepository, IExpenseRepository, IInventoryRepository...
+|       |-- application/             # Capa de Aplicacion (Casos de Uso del negocio)
+|       |   `-- use-cases/           # GetFinancialSummary, ManageExpenses, ManageInventory...
+|       |-- infrastructure/          # Capa de Infraestructura (Implementaciones externas)
+|       |   |-- database/            # schema.sql (PostgreSQL) y cliente Supabase
+|       |   |-- repositories/        # Implementaciones InMemory y Supabase PostgreSQL
+|       |   `-- services/            # GeminiReceiptScannerService (Integracion Google AI)
+|       `-- presentation/            # Capa de Presentacion (Controladores y Rutas HTTP)
+|           |-- controllers/         # FinancialController, InventoryController
+|           |-- routes/              # financeRoutes, inventoryRoutes
+|           `-- server.ts            # Punto de composicion e inyeccion de dependencias
+|
+`-- README.md
 ```
 
-### Aplicación de Principios SOLID:
-- **S (Single Responsibility):** Cada caso de uso (`GetFinancialSummaryUseCase`, `ManageInventoryUseCase`) tiene una única responsabilidad y motivo de cambio.
-- **O (Open/Closed):** La lógica de negocio está abierta a extensión mediante interfaces de repositorio y cerrada a modificación.
-- **L (Liskov Substitution):** Cualquier implementación de repositorio (`InMemoryExpenseRepository`, `SupabaseExpenseRepository`) puede sustituir a otra sin alterar el comportamiento de la aplicación.
-- **I (Interface Segregation):** Las interfaces son específicas y compactas (`IExpenseRepository`, `IInventoryRepository`).
-- **D (Dependency Inversion):** Los casos de uso no dependen de bases de datos ni de Express; dependen de abstracciones (`src/domain/repositories`). Las dependencias se inyectan en el punto de composición (`server.ts`).
+### Principios SOLID Aplicados
+- **Single Responsibility (SRP):** Cada caso de uso ejecuta una unica operacion de negocio aislada.
+- **Open/Closed (OCP):** El sistema permite incorporar nuevos proveedores de persistencia (ej. MySQL o MongoDB) implementando las interfaces de repositorio existentes sin modificar los casos de uso.
+- **Liskov Substitution (LSP):** Las implementaciones `InMemoryRepository` y `SupabaseRepository` son 100% intercambiables sin alterar la semantica del negocio.
+- **Interface Segregation (ISP):** Repositorios pequenos y atomicos adaptados exclusivamente a las necesidades de cada entidad.
+- **Dependency Inversion (DIP):** La logica de aplicacion depende unicamente de abstracciones (`domain/repositories`), mientras que las implementaciones de infraestructura se inyectan en el Composition Root (`server.ts`).
 
 ---
 
-## ☁️ Recomendación de Base de Datos y Hosting en la Nube
+## 4. Variables de Entorno
 
-Para una familia de **hasta 10 personas**, se busca mantener el sistema activo las 24 horas del día con costo **$0 USD**:
+El backend permite operar en modo local volatil (sin configuracion previa) o en modo persistente en la nube mediante un archivo `.env` en el directorio `server`:
 
-### Base de Datos Recomendada: **Supabase (PostgreSQL)**
-1. **Plan Gratuito Permanente:** 500 MB de base de datos relacional (almacena millones de transacciones familiares sin costo).
-2. **Alta Disponibilidad:** Hospedado en AWS con 99.9% de uptime, activo 24/7.
-3. **Sincronización en Tiempo Real:** Permite que si alguien en el supermercado marca un producto como comprado, se refleje al instante en el teléfono de los demás en casa.
-4. **Instalación Rápida:** 
-   - Crea un proyecto gratuito en [supabase.com](https://supabase.com).
-   - Ve a **SQL Editor** y pega el contenido del archivo [`server/src/infrastructure/database/schema.sql`](file:///C:/gestion-hogar/server/src/infrastructure/database/schema.sql).
-   - ¡Listo! Las 5 tablas y relaciones quedarán creadas de inmediato.
+```env
+# Puerto del servidor backend (por defecto: 3001)
+PORT=3001
 
-*Alternativa:* **Neon.tech** (PostgreSQL Serverless gratuito con branching).
+# Conexion con Supabase (PostgreSQL en la nube)
+# Si se omiten, el servidor utiliza almacenamiento en memoria local
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_KEY=tu-supabase-anon-o-service-key
 
-### Hosting de la Aplicación:
-- **Frontend (Web):** Desplegar en **Vercel** o **Cloudflare Pages** conectando tu repositorio de GitHub. Ofrecen dominio HTTPS gratuito (ej: `mi-hogar.vercel.app`) y CDN global sin costo.
-- **Backend (API):** Desplegar la carpeta `server` en **Render.com** (Web Service gratuito) o **Railway.app**.
+# Clave de API de Google Gemini para el escaner inteligente de boletas
+# Tambien puede ingresarse directamente desde la interfaz web del cliente
+GEMINI_API_KEY=tu-gemini-api-key
+```
 
 ---
 
-## 🚀 Cómo Ejecutar el Proyecto Localmente
+## 5. Instalacion y Ejecucion Local
 
-### Requisitos previos:
-- Node.js v18 o superior instalado.
+### Requisitos Previos
+- Node.js version 18.0.0 o superior
+- npm version 9.0.0 o superior
 
-### 1. Iniciar Frontend y Backend simultáneamente:
-Desde la carpeta raíz `C:\gestion-hogar`:
+### Paso 1: Clonar e Instalar Dependencias
+```bash
+git clone https://github.com/TU_USUARIO/gestion-hogar.git
+cd gestion-hogar
+
+# Instalar dependencias raiz, del cliente y del servidor
+npm run install:all
+```
+
+### Paso 2: Ejecucion en Modo Desarrollo
+Para ejecutar el frontend y el backend de forma concurrente con recarga automatica:
 
 ```bash
 npm run dev
 ```
 
-Esto levantará:
-- **Backend API:** `http://localhost:3001`
-- **Frontend Web:** `http://localhost:5173`
-
-Abre tu navegador en `http://localhost:5173`. Viene con datos iniciales de demostración para probar de inmediato todas las funciones.
+Los servicios estaran disponibles en:
+- **Cliente Web:** `http://localhost:5173`
+- **Servidor API:** `http://localhost:3001`
+- **Healthcheck API:** `http://localhost:3001/api/health`
 
 ---
 
-## 🐙 Conectar con tu Cuenta de GitHub
+## 6. Ejecucion de Pruebas
 
-El proyecto ya está inicializado con Git localmente en `C:\gestion-hogar`. Para subirlo a tu cuenta de GitHub:
-
-1. Ingresa a [github.com/new](https://github.com/new) y crea un nuevo repositorio llamado `gestion-hogar` (puedes dejarlo público o privado).
-2. En tu terminal ejecuta:
+El proyecto cuenta con suites de pruebas unitarias y de integracion:
 
 ```bash
-cd C:\gestion-hogar
-git remote add origin https://github.com/TU_USUARIO_DE_GITHUB/gestion-hogar.git
-git branch -M main
-git push -u origin main
+# Ejecutar la suite completa desde la raiz (cliente + servidor)
+npm test
+
+# O ejecutar pruebas individualmente en cada modulo:
+cd client
+npm test
+
+cd ../server
+npm test
 ```
+
+Para verificar la compilacion y tipado estricto sin simbolos en desuso:
+
+```bash
+# Compilacion y comprobacion de tipos en el cliente
+cd client
+npm run build
+
+# Compilacion y comprobacion de tipos en el servidor
+cd ../server
+npm run build
+```
+
+---
+
+## 7. Despliegue en Produccion
+
+### Base de Datos: Supabase (PostgreSQL)
+1. Crear una cuenta gratuita en [supabase.com](https://supabase.com) y crear un nuevo proyecto.
+2. Abrir el **SQL Editor** en el panel de Supabase.
+3. Copiar y ejecutar el contenido del archivo `server/src/infrastructure/database/schema.sql`.
+4. Copiar la **Project URL** y el **anon key** desde los ajustes del proyecto para configurar las variables de entorno.
+
+### Backend: Render
+1. Crear una cuenta en [render.com](https://render.com) y seleccionar **New Web Service**.
+2. Vincular el repositorio Git del proyecto.
+3. Configurar:
+   - **Root Directory:** `server`
+   - **Environment:** `Node`
+   - **Build Command:** `npm install && npm run build`
+   - **Start Command:** `npm start`
+4. En la seccion **Environment Variables**, definir:
+   - `SUPABASE_URL`
+   - `SUPABASE_KEY`
+   - `GEMINI_API_KEY` (opcional)
+
+### Frontend: Vercel
+1. Crear una cuenta en [vercel.com](https://vercel.com) e importar el repositorio.
+2. Configurar:
+   - **Framework Preset:** `Vite`
+   - **Root Directory:** `client`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+3. Al ingresar por primera vez a la URL de Vercel (ej. `https://mi-hogar.vercel.app`), utilizar el banner superior de configuracion para ingresar la URL del backend en Render (ej. `https://mi-backend.onrender.com`). La aplicacion guardara la configuracion y conectara de inmediato.

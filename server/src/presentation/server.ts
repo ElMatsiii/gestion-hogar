@@ -95,15 +95,17 @@ app.get('/api/health', (_req: Request, res: Response) => {
   });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`=================================================`);
-  console.log(` 🏡 Servidor de Gestión del Hogar Iniciado`);
-  console.log(` 🚀 Escuchando en:   http://localhost:${PORT}`);
-  console.log(` 📦 Persistencia:    ${supabase ? '☁️ Supabase (PostgreSQL en la Nube)' : '💾 Memoria Local (InMemory)'}`);
-  console.log(` 📊 API Finanzas:    http://localhost:${PORT}/api/finances/summary`);
-  console.log(` 🍏 API Despensa:    http://localhost:${PORT}/api/inventory/items`);
-  console.log(`=================================================`);
-});
+// Start Server only if executed directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`=================================================`);
+    console.log(` [HogarSync] Servidor de Gestion del Hogar Iniciado`);
+    console.log(` [Server] Escuchando en:   http://localhost:${PORT}`);
+    console.log(` [Storage] Persistencia:   ${supabase ? 'Supabase (PostgreSQL en la Nube)' : 'Memoria Local (InMemory)'}`);
+    console.log(` [Finances] API Finanzas:  http://localhost:${PORT}/api/finances/summary`);
+    console.log(` [Pantry] API Despensa:    http://localhost:${PORT}/api/inventory/items`);
+    console.log(`=================================================`);
+  });
+}
 
 export default app;

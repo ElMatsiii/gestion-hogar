@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "tsx watch src/presentation/server.ts",
     "build": "tsc",
-    "start": "node dist/presentation/server.js"
+    "start": "node dist/presentation/server.js",
+    "pretest": "npm run build",
+    "test": "node --test tests/api.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",

@@ -1,8 +1,4 @@
-import {
-  InventoryCategory,
-  InventoryItem,
-  InventoryLocation,
-} from '../../domain/entities/InventoryItem';
+import { InventoryItem } from '../../domain/entities/InventoryItem';
 import {
   IInventoryRepository,
   InventoryFilter,

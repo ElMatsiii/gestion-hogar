@@ -10,7 +10,6 @@ import {
   Sparkles,
   Key,
   ExternalLink,
-  AlertCircle,
 } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 import { api } from '../../services/api';
@@ -54,7 +53,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
 
   // Form states from scanned receipt
   const [storeName, setStoreName] = useState('Supermercado');
-  const [receiptDate, setReceiptDate] = useState(new Date().toISOString().split('T')[0]);
+  const [receiptDate, setReceiptDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [paidById, setPaidById] = useState(members[0]?.id || '');
   const [scannedItems, setScannedItems] = useState<DetectedItem[]>([]);
   const [totalAmount, setTotalAmount] = useState<number>(0);
@@ -64,6 +63,9 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
 
   const handleSaveKey = () => {
     const clean = tempKey.trim();
+    if (clean && (!clean.startsWith('AIza') || clean.length < 30)) {
+      showWarning('Aviso: Las claves de Google Gemini suelen comenzar con "AIza" y tener al menos 30 caracteres.');
+    }
     setGeminiKey(clean);
     if (typeof window !== 'undefined') {
       if (clean) {
@@ -171,7 +173,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
     }
   };
 
-  const handleUpdateItem = (id: string, field: keyof DetectedItem, value: any) => {
+  const handleUpdateItem = (id: string, field: keyof DetectedItem, value: string | number) => {
     setScannedItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
     );

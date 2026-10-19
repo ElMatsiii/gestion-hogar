@@ -22,7 +22,7 @@ function readPngDimensions(buffer) {
   return { width, height };
 }
 
-test('R1: Web App Manifest is valid and meets all Android PWA requirements', (t) => {
+test('R1: Web App Manifest is valid and meets all Android PWA requirements', () => {
   const manifestPaths = [
     path.join(clientDir, 'public', 'manifest.webmanifest'),
     path.join(clientDir, 'dist', 'manifest.webmanifest'),
@@ -228,7 +228,7 @@ test('R3: Standalone display-mode check logic handles missing matchMedia, iOS, a
   assert.equal(typeof isStandaloneMode, 'function', 'isStandaloneMode must be exported from pwaUtils.ts');
 
   // Standard browser tab
-  assert.equal(isStandaloneMode((q) => false, false, ''), false, 'Browser tab is not standalone');
+  assert.equal(isStandaloneMode((_q) => false, false, ''), false, 'Browser tab is not standalone');
 
   // Standalone display mode
   assert.equal(isStandaloneMode((q) => q === '(display-mode: standalone)', false, ''), true, 'standalone matches');
@@ -281,3 +281,80 @@ test('R3: Mobile UI integration (Navbar and PWAInstallBanner contain install tri
   assert.match(bannerContent, /Loader2/, 'PWAInstallBanner uses Loader2 for spin animation');
   assert.match(bannerContent, /safe-area-inset-bottom/, 'PWAInstallBanner accounts for mobile safe area insets');
 });
+
+test('R4: Cleanup and Boilerplate Removal - orphaned and unreferenced files are deleted', () => {
+  const forbiddenPaths = [
+    path.join(clientDir, 'generate_pwa_icons.py'),
+    path.join(clientDir, 'README.md'),
+    path.join(clientDir, 'src', 'App.css'),
+    path.join(clientDir, 'src', 'assets'),
+    path.join(clientDir, 'src', 'components', 'cloud'),
+    path.join(clientDir, 'public', 'icons.svg'),
+    path.join(clientDir, 'public', 'manifest.json'),
+  ];
+
+  for (const forbiddenPath of forbiddenPaths) {
+    assert.equal(
+      fs.existsSync(forbiddenPath),
+      false,
+      `Orphaned file or directory must be removed: ${forbiddenPath}`
+    );
+  }
+});
+
+test('R5: Zero Emoji Invariant - client/src, server/src, and README.md contain 0 emojis', () => {
+  const rootDir = path.resolve(clientDir, '..');
+  const emojiRegex = /[\p{Extended_Pictographic}\p{Emoji_Presentation}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2B50}\u{2B55}\u{231A}\u{231B}\u{23E9}-\u{23EC}\u{23F0}\u{23F3}]/u;
+
+  function collectTextFiles(dir) {
+    const results = [];
+    if (!fs.existsSync(dir)) return results;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (!['node_modules', 'dist', '.git'].includes(entry.name)) {
+          results.push(...collectTextFiles(fullPath));
+        }
+      } else if (/\.(ts|tsx|js|mjs|cjs|json|md|html|css|sql|yaml|yml)$/i.test(entry.name)) {
+        results.push(fullPath);
+      }
+    }
+    return results;
+  }
+
+  const filesToCheck = [
+    ...collectTextFiles(path.join(clientDir, 'src')),
+    ...collectTextFiles(path.join(clientDir, 'public')),
+    path.join(clientDir, 'index.html'),
+    path.join(clientDir, 'vite.config.ts'),
+    path.join(clientDir, 'package.json'),
+    path.join(clientDir, 'tsconfig.app.json'),
+    path.join(clientDir, 'tests', 'pwa.test.mjs'),
+    ...collectTextFiles(path.join(rootDir, 'server', 'src')),
+    ...collectTextFiles(path.join(rootDir, 'server', 'tests')),
+    path.join(rootDir, 'server', 'package.json'),
+    path.join(rootDir, 'server', 'tsconfig.json'),
+    path.join(rootDir, 'package.json'),
+    path.join(rootDir, 'render.yaml'),
+    path.join(rootDir, 'README.md'),
+  ];
+
+  const violations = [];
+  for (const filePath of filesToCheck) {
+    if (!fs.existsSync(filePath)) continue;
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n');
+    lines.forEach((line, idx) => {
+      if (emojiRegex.test(line)) {
+        violations.push(`${path.relative(rootDir, filePath)}:${idx + 1}: ${line.trim()}`);
+      }
+    });
+  }
+
+  assert.equal(
+    violations.length,
+    0,
+    `Zero emojis expected across client/src, server/src, and README.md. Violations:\n${violations.join('\n')}`
+  );
+});
+

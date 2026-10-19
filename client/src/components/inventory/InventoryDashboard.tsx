@@ -404,7 +404,10 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({
                     onChange={(e) => setShowLowStockOnly(e.target.checked)}
                     className="rounded text-emerald-600 focus:ring-emerald-500"
                   />
-                  <span>⚠️ Solo poco stock ({lowStockItems.length})</span>
+                  <span className="inline-flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                    Solo poco stock ({lowStockItems.length})
+                  </span>
                 </label>
               </div>
             </div>

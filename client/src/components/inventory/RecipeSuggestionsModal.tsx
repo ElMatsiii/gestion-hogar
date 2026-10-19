@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import {
-  Utensils,
-  Sparkles,
   Check,
-  AlertTriangle,
   Clock,
   Flame,
   Plus,
   X,
   ChefHat,
-  ArrowRight,
   CookingPot,
 } from 'lucide-react';
 import { InventoryItem } from '../../types';
@@ -38,7 +34,7 @@ export const RecipeSuggestionsModal: React.FC<RecipeSuggestionsModalProps> = ({
   inventory,
   onRefresh,
 }) => {
-  const { showSuccess, showError, showWarning } = useNotification();
+  const { showSuccess, showError } = useNotification();
   const [cookingRecipeId, setCookingRecipeId] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -109,7 +105,7 @@ export const RecipeSuggestionsModal: React.FC<RecipeSuggestionsModalProps> = ({
   const scoredRecipes = catalog.map((recipe) => {
     let availableCount = 0;
     let hasExpiringSoonIngredient = false;
-    const matchedItems: { req: any; matchedItem?: InventoryItem }[] = [];
+    const matchedItems: { req: Recipe['requiredIngredients'][number]; matchedItem?: InventoryItem }[] = [];
 
     recipe.requiredIngredients.forEach((req) => {
       const match = checkIngredientMatch(req.name, req.category);

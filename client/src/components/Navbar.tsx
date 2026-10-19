@@ -7,6 +7,7 @@ import {
   PiggyBank,
   Download,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 import { usePWAInstall } from '../context/PWAInstallContext';
 import { useNotification } from '../context/NotificationContext';
@@ -73,7 +74,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
               {(lowStockCount > 0 || expiringCount > 0) && (
                 <span className="flex items-center space-x-1 pl-2 border-l border-slate-200 text-amber-600 font-semibold">
-                  <span>⚠️ {lowStockCount} por comprar</span>
+                  <span className="inline-flex items-center">
+                    <AlertTriangle className="w-3.5 h-3.5 inline mr-1 text-amber-500" />
+                    {lowStockCount} por comprar
+                  </span>
                   {expiringCount > 0 && <span>· {expiringCount} por vencer</span>}
                 </span>
               )}
