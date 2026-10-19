@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
@@ -67,7 +67,7 @@ app.use('/api/finances', createFinanceRouter(financialController));
 app.use('/api/inventory', createInventoryRouter(inventoryController));
 
 // Healthcheck
-app.get('/api/health', (_req, res) => {
+app.get('/api/health', (_req: Request, res: Response) => {
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
